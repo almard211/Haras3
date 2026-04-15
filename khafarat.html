@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>نظام كشف الخفارات</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap');
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'Cairo', 'Segoe UI', Tahoma, Arial, sans-serif;
+  background: #dde2e8;
+  min-height: 100vh;
+  padding: 24px 14px;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: flex;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+  -webkit-flex-direction: column;
+  flex-direction: column;
+  -webkit-box-align: center;
+  -webkit-align-items: center;
+  align-items: center;
+  gap: 20px;
+}
+
+/* ===== FORM ===== */
+.form-wrap {
+  width: 100%; max-width: 660px;
+  background: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.13);
+  border: 1px solid #c5cdd5;
+}
+.form-header {
+  background: #3d4b5c;
+  padding: 16px 22px;
+  border-bottom: 2px solid #8a7550;
+  text-align: center;
+}
+.form-header h1 { color: #fff; font-size: 1.15rem; font-weight: 700; }
+.form-header p  { color: #b0bec8; font-size: 0.8rem; margin-top: 3px; font-weight: 600; }
+
+.form-body  { padding: 20px 22px; }
+.form-group { margin-bottom: 16px; }
+
+label {
+  display: block; font-size: 0.82rem; font-weight: 700;
+  color: #3d4b5c; margin-bottom: 6px;
+}
+.req { color: #c0392b; }
+
+select, input[type="text"] {
+  width: 100%; padding: 10px 13px;
+  border: 1.5px solid #c5cdd5; border-radius: 8px;
+  font-family: 'Cairo', 'Segoe UI', Tahoma, Arial, sans-serif;
+  font-size: 16px; /* 16px prevents iOS zoom */
+  color: #1e2630; background: #fff; direction: rtl;
+  -webkit-appearance: none;
+  appearance: none;
+}
+select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23888'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: left 10px center; padding-left: 28px; }
+select:focus, input:focus { outline: none; border-color: #526170; }
+
+.form-row   { display: -webkit-box; display: -webkit-flex; display: flex; gap: 14px; }
+.form-row > .form-group { -webkit-box-flex: 1; -webkit-flex: 1; flex: 1; margin-bottom: 0; }
+.form-row-3 { display: -webkit-box; display: -webkit-flex; display: flex; gap: 8px; }
+.form-row-3 > select { -webkit-box-flex: 1; -webkit-flex: 1; flex: 1; }
+
+/* Center badge */
+.center-badge {
+  background: #3d4b5c; color: #fff;
+  padding: 7px 14px; border-radius: 6px; font-size: 0.82rem;
+  margin-top: 8px; gap: 8px;
+  display: -webkit-box; display: -webkit-flex; display: flex;
+  -webkit-box-align: center; -webkit-align-items: center; align-items: center;
+  visibility: hidden; opacity: 0;
+  -webkit-transition: opacity 0.2s; transition: opacity 0.2s;
+}
+.center-badge.show { visibility: visible; opacity: 1; }
+.center-badge .num {
+  background: #b09a68; color: #fff;
+  padding: 2px 10px; border-radius: 12px; font-weight: 700;
+}
+
+/* Names editor */
+.names-editor {
+  border: 1.5px solid #c5cdd5; border-radius: 8px;
+  overflow: hidden; background: #fff; direction: rtl;
+}
+.name-row {
+  display: -webkit-box; display: -webkit-flex; display: flex;
+  -webkit-box-align: center; -webkit-align-items: center; align-items: center;
+  border-bottom: 1px solid #edf0f3;
+}
+.name-row:last-child { border-bottom: none; }
+
+.name-num {
+  min-width: 36px; text-align: center; font-size: 0.75rem; font-weight: 700;
+  color: #fff; background: #526170; padding: 10px 6px;
+  -webkit-align-self: stretch; align-self: stretch;
+  display: -webkit-box; display: -webkit-flex; display: flex;
+  -webkit-box-align: center; -webkit-align-items: center; align-items: center;
+  -webkit-box-pack: center; -webkit-justify-content: center; justify-content: center;
+  -webkit-transition: background 0.25s; transition: background 0.25s;
+}
+.name-num.done { background: #27ae60; }
+
+.name-input {
+  -webkit-box-flex: 1; -webkit-flex: 1; flex: 1;
+  border: none; outline: none;
+  padding: 10px 12px; font-size: 16px;
+  font-family: 'Cairo', 'Segoe UI', Tahoma, Arial, sans-serif;
+  color: #1e2630; background: transparent; direction: rtl; width: 100%;
+  -webkit-appearance: none; appearance: none;
+}
+.name-input:focus { background: #f7f9fb; }
+
+.names-counter {
+  display: -webkit-box; display: -webkit-flex; display: flex;
+  -webkit-box-pack: end; -webkit-justify-content: flex-end; justify-content: flex-end;
+  gap: 5px; margin-top: 5px; font-size: 0.78rem; color: #888;
+}
+.counter-num { font-weight: 700; color: #3d4b5c; }
+.counter-num.ok  { color: #27ae60; }
+.counter-num.bad { color: #e74c3c; }
+
+.divider { height: 1px; background: #c5cdd5; margin: 18px 0; }
+
+.btn-gen {
+  width: 100%; padding: 13px; background: #3d4b5c; color: #fff;
+  border: none; border-radius: 8px;
+  font-family: 'Cairo', 'Segoe UI', Tahoma, Arial, sans-serif;
+  font-size: 1rem; font-weight: 700; cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.btn-gen:active { background: #526170; }
+
+.error {
+  background: #fdf0f0; border: 1px solid #e74c3c; border-radius: 6px;
+  padding: 9px 14px; color: #c0392b; font-size: 0.82rem;
+  display: none; margin-top: 10px;
+}
+.error.show { display: block; }
+
+/* ===== PREVIEW ===== */
+#preview-section { display: none; width: 100%; max-width: 720px; }
+
+.preview-actions {
+  display: -webkit-box; display: -webkit-flex; display: flex;
+  gap: 10px; -webkit-box-pack: justify; -webkit-justify-content: space-between; justify-content: space-between;
+  margin-bottom: 12px; -webkit-flex-wrap: wrap; flex-wrap: wrap;
+  -webkit-box-align: center; -webkit-align-items: center; align-items: center;
+}
+.date-range-badge {
+  background: #fff; border: 1px solid #c5cdd5;
+  border-radius: 8px; padding: 8px 14px;
+  font-size: 0.82rem; color: #3d4b5c; line-height: 1.8;
+}
+.date-range-badge strong { color: #8a7550; }
+.preview-actions .btns {
+  display: -webkit-box; display: -webkit-flex; display: flex; gap: 8px;
+}
+.btn-print {
+  padding: 10px 20px; background: #8a7550; color: #fff; border: none;
+  border-radius: 8px; font-family: 'Cairo', 'Segoe UI', Tahoma, Arial, sans-serif;
+  font-size: 0.88rem; font-weight: 700; cursor: pointer; white-space: nowrap;
+  -webkit-tap-highlight-color: transparent;
+}
+.btn-edit {
+  padding: 10px 20px; background: #fff; color: #3d4b5c;
+  border: 2px solid #c5cdd5; border-radius: 8px;
+  font-family: 'Cairo', 'Segoe UI', Tahoma, Arial, sans-serif;
+  font-size: 0.88rem; font-weight: 700; cursor: pointer; white-space: nowrap;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ===== PRINTABLE ===== */
+#printable {
+  background: #fff; border: 1px solid #c5cdd5;
+  border-radius: 8px; overflow: hidden;
+  font-family: 'Cairo', 'Segoe UI', Tahoma, Arial, sans-serif; direction: rtl;
+}
+
+.doc-print-title {
+  display: none; text-align: center;
+  padding: 12px 12px 7px; border-bottom: 2px solid #000;
+}
+.doc-print-title h1 {
+  font-size: 15pt; font-weight: 900; color: #000;
+}
+.doc-print-title .print-sub { font-size: 8pt; color: #333; margin-top: 3px; }
+
+.doc-header {
+  background: #3d4b5c; padding: 12px 16px;
+  border-bottom: 2px solid #8a7550;
+  display: -webkit-box; display: -webkit-flex; display: flex;
+  -webkit-box-pack: justify; -webkit-justify-content: space-between; justify-content: space-between;
+  -webkit-box-align: center; -webkit-align-items: center; align-items: center;
+  -webkit-flex-wrap: wrap; flex-wrap: wrap; gap: 8px;
+}
+.doc-header .title-block h2 { color: #fff; font-size: 0.95rem; font-weight: 700; }
+.doc-header .title-block p  { color: #b0bec8; font-size: 0.73rem; margin-top: 2px; }
+.doc-header .meta { color: #b0bec8; font-size: 0.73rem; line-height: 1.7; text-align: left; }
+.doc-header .meta strong { color: #b09a68; }
+
+table.doc {
+  width: 100%; border-collapse: collapse;
+  direction: rtl; font-size: 0.79rem;
+}
+table.doc thead th {
+  padding: 8px 5px; text-align: center;
+  border: 1px solid #aab0b8;
+  font-weight: 700; white-space: nowrap;
+  /* Forced print color */
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+table.doc thead th small {
+  display: block; font-size: 0.66rem; font-weight: 500; margin-top: 1px;
+}
+
+table.doc tbody td {
+  padding: 4px 4px; text-align: center;
+  border: 1px solid #d5dce3; vertical-align: middle;
+  /* Forced print color */
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.day-name { font-weight: 800; font-size: 0.87rem; color: #1a2330; }
+.day-date { font-size: 0.72rem; color: #555; margin-top: 1px; }
+
+.names-cell {
+  display: -webkit-box; display: -webkit-flex; display: flex;
+  -webkit-box-orient: vertical; -webkit-box-direction: normal;
+  -webkit-flex-direction: column; flex-direction: column;
+  gap: 1px;
+}
+.name-tag {
+  border-radius: 3px; padding: 2px 4px;
+  font-size: 0.83rem; font-weight: 700;
+  color: #1e2630; text-align: center;
+}
+
+.doc-footer {
+  border-top: 2px solid #c5cdd5; background: #f4f5f7;
+  padding: 10px 18px;
+  display: -webkit-box; display: -webkit-flex; display: flex;
+  -webkit-box-pack: justify; -webkit-justify-content: space-between; justify-content: space-between;
+  -webkit-box-align: center; -webkit-align-items: center; align-items: center;
+  -webkit-flex-wrap: wrap; flex-wrap: wrap; gap: 8px;
+}
+.footer-sig .lbl { font-size: 0.71rem; color: #888; font-weight: 600; }
+.footer-sig .val { font-size: 0.88rem; font-weight: 700; color: #3d4b5c; }
+.footer-sig .rnk { font-size: 0.74rem; color: #526170; }
+
+/* ===== PRINT ===== */
+@media print {
+  @page { size: A4 portrait; margin: 7mm; }
+  body { background: white !important; padding: 0; }
+  .form-wrap, .preview-actions { display: none !important; }
+  #preview-section { display: block !important; max-width: 100%; }
+  #printable { border: none !important; border-radius: 0 !important; }
+  .doc-print-title { display: block !important; }
+  .doc-header       { display: none !important; }
+
+  -webkit-print-color-adjust: exact !important;
+  print-color-adjust: exact !important;
+  color-adjust: exact !important;
+
+  table.doc { font-size: 7.6pt !important; }
+  table.doc thead th { padding: 5px 3px !important; font-size: 7.6pt !important;
+    -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+  table.doc tbody td { padding: 2px 3px !important;
+    -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+  .name-tag  { font-size: 7.8pt !important; padding: 1px 3px !important; }
+  .day-name  { font-size: 7.8pt !important; }
+  .day-date  { font-size: 6.8pt !important; }
+  .doc-footer { padding: 5px 10px !important; }
+  .doc-print-title h1 { font-size: 13pt !important; }
+  .doc-print-title .print-sub { font-size: 7.5pt !important; }
+  .names-cell { gap: 0 !important; }
+}
+</style>
+</head>
+<body>
+
+<!-- FORM -->
+<div class="form-wrap">
+  <div class="form-header">
+    <h1>نظام كشف الخفارات</h1>
+    <p>الفوج الثالث بالحرس الوطني</p>
+  </div>
+  <div class="form-body">
+
+    <div class="form-group">
+      <label><span class="req">* </span>المركز</label>
+      <select id="center-sel" onchange="onCenter()">
+        <option value="">-- اختر المركز --</option>
+        <option value="إذاعة الخمرة" data-count="12">إذاعة الخمرة</option>
+        <option value="صمام 80"       data-count="6">صمام 80</option>
+        <option value="صمام 40"       data-count="6">صمام 40</option>
+        <option value="الآليات"       data-count="6">الآليات</option>
+      </select>
+      <div class="center-badge" id="center-badge">
+        <span>عدد الأفراد المطلوب:</span>
+        <span class="num" id="badge-num"></span>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label><span class="req">* </span>تاريخ بداية الاستلام (هجري)</label>
+      <div class="form-row-3">
+        <select id="d-day">  <option value="">اليوم</option></select>
+        <select id="d-month">
+          <option value="">الشهر</option>
+          <option value="1">1 - محرم</option>
+          <option value="2">2 - صفر</option>
+          <option value="3">3 - ربيع الأول</option>
+          <option value="4">4 - ربيع الثاني</option>
+          <option value="5">5 - جمادى الأولى</option>
+          <option value="6">6 - جمادى الثانية</option>
+          <option value="7">7 - رجب</option>
+          <option value="8">8 - شعبان</option>
+          <option value="9">9 - رمضان</option>
+          <option value="10">10 - شوال</option>
+          <option value="11">11 - ذو القعدة</option>
+          <option value="12">12 - ذو الحجة</option>
+        </select>
+        <select id="d-year"><option value="">السنة</option></select>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label><span class="req">* </span>اسم العريف</label>
+        <input type="text" id="arif-name" placeholder="اسم العريف">
+      </div>
+      <div class="form-group">
+        <label><span class="req">* </span>الرتبة</label>
+        <input type="text" id="arif-rank" placeholder="مثال: وكيل رقيب">
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>
+        <span class="req">* </span>أسماء الأفراد
+        <span id="names-lbl" style="color:#888;font-weight:400;font-size:0.78rem;"></span>
+      </label>
+      <div class="names-editor" id="names-editor">
+        <div class="name-row">
+          <div class="name-num">—</div>
+          <input class="name-input" placeholder="اختر المركز أولاً" disabled="disabled">
+        </div>
+      </div>
+      <div class="names-counter" id="names-counter" style="display:none;">
+        مُدخَل: <span class="counter-num" id="cnt">0</span> / <span id="cnt-req">0</span>
+      </div>
+    </div>
+
+    <div class="error" id="err"></div>
+    <div class="divider"></div>
+    <button class="btn-gen" onclick="generate()">⚙ توليد كشف الخفارات</button>
+  </div>
+</div>
+
+<!-- PREVIEW -->
+<div id="preview-section">
+  <div class="preview-actions">
+    <div class="date-range-badge" id="date-range-badge">—</div>
+    <div class="btns">
+      <button class="btn-print" onclick="window.print()">🖨 طباعة / PDF</button>
+      <button class="btn-edit"  onclick="backToForm()">✏ تعديل</button>
+    </div>
+  </div>
+  <div id="printable">
+    <div class="doc-print-title">
+      <h1 id="doc-print-title-text">كشف الخفارات</h1>
+      <div class="print-sub" id="doc-print-sub"></div>
+    </div>
+    <div class="doc-header">
+      <div class="title-block">
+        <h2 id="doc-title"></h2>
+        <p  id="doc-sub"></p>
+      </div>
+      <div class="meta" id="doc-meta"></div>
+    </div>
+    <table class="doc">
+      <thead id="doc-head"></thead>
+      <tbody id="doc-body"></tbody>
+    </table>
+    <div class="doc-footer">
+      <div class="footer-sig">
+        <div class="lbl">عريف المجموعة</div>
+        <div class="val" id="doc-arif"></div>
+        <div class="rnk" id="doc-rank"></div>
+      </div>
+      <div class="footer-sig" style="text-align:left;">
+        <div class="lbl">التوقيع</div>
+        <div class="val" style="color:#bbb;letter-spacing:4px;">____________________</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+var MONTHS   = ['محرم','صفر','ربيع الأول','ربيع الثاني','جمادى الأولى','جمادى الثانية','رجب','شعبان','رمضان','شوال','ذو القعدة','ذو الحجة'];
+var WEEKDAYS = ['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
+
+/* Safari-safe: use window.onload, no arrow functions in init */
+window.onload = function() {
+  /* Fill day dropdown */
+  var sd = document.getElementById('d-day');
+  for (var i = 1; i <= 30; i++) {
+    var o = document.createElement('option');
+    o.value = String(i);
+    o.textContent = String(i);
+    sd.appendChild(o);
+  }
+  /* Fill year dropdown */
+  var sy = document.getElementById('d-year');
+  var base = 1446;
+  for (var y = base - 2; y <= base + 1; y++) {
+    var oy = document.createElement('option');
+    oy.value = String(y);
+    oy.textContent = String(y);
+    if (y === base) { oy.selected = true; }
+    sy.appendChild(oy);
+  }
+  /* Show default names editor placeholder */
+  renderDisabledEditor();
+};
+
+function renderDisabledEditor() {
+  var editor = document.getElementById('names-editor');
+  editor.innerHTML = '<div class="name-row"><div class="name-num">\u2014</div><input class="name-input" placeholder="\u0627\u062e\u062a\u0631 \u0627\u0644\u0645\u0631\u0643\u0632 \u0623\u0648\u0644\u0627\u064b" disabled="disabled"></div>';
+  document.getElementById('names-counter').style.display = 'none';
+}
+
+/* JDN-based Umm al-Qura weekday */
+function hijriToJDN(d, m, y) {
+  return Math.floor((11 * y + 3) / 30)
+       + Math.floor(354 * y)
+       + Math.floor(30 * m)
+       - Math.floor((m - 1) / 2)
+       + d + 1948440 - 385;
+}
+function getDOW(d, m, y) {
+  return (hijriToJDN(d, m, y) + 1) % 7;
+}
+
+/* Hijri date arithmetic */
+function dimOfMonth(mo) { return (mo % 2 === 1) ? 30 : 29; }
+function addH(d, m, y, n) {
+  d = d + n;
+  while (d > dimOfMonth(m)) {
+    d = d - dimOfMonth(m);
+    m = m + 1;
+    if (m > 12) { m = 1; y = y + 1; }
+  }
+  return { d: d, m: m, y: y };
+}
+function pad2(n) { return n < 10 ? '0' + n : String(n); }
+function fmtS(d, m, y) { return y + '/' + pad2(m) + '/' + pad2(d); }
+function fmtL(d, m, y) { return d + ' ' + MONTHS[m - 1] + ' ' + y + '\u0647\u0640'; }
+
+/* Names editor — Safari safe (no template literals with expressions in oninput) */
+function buildNamesEditor(count) {
+  var editor = document.getElementById('names-editor');
+  editor.innerHTML = '';
+  for (var i = 1; i <= count; i++) {
+    var row  = document.createElement('div');
+    row.className = 'name-row';
+
+    var num  = document.createElement('div');
+    num.className = 'name-num';
+    num.id = 'nn-' + i;
+    num.textContent = String(i);
+
+    var inp  = document.createElement('input');
+    inp.className   = 'name-input';
+    inp.type        = 'text';
+    inp.id          = 'ni-' + i;
+    inp.placeholder = '\u0627\u0644\u0627\u0633\u0645 ' + i;
+    /* Safari safe: use data attribute instead of closure argument */
+    inp.setAttribute('data-idx', String(i));
+    inp.addEventListener('input', function() {
+      var idx = parseInt(this.getAttribute('data-idx'), 10);
+      onNameInput(idx);
+    });
+
+    row.appendChild(num);
+    row.appendChild(inp);
+    editor.appendChild(row);
+  }
+  document.getElementById('names-counter').style.display = 'flex';
+  document.getElementById('cnt-req').textContent = String(count);
+  updateCounter();
+}
+
+function onNameInput(i) {
+  var el  = document.getElementById('ni-' + i);
+  var num = document.getElementById('nn-' + i);
+  if (el && num) {
+    if (el.value.trim().length > 0) {
+      num.classList.add('done');
+    } else {
+      num.classList.remove('done');
+    }
+  }
+  updateCounter();
+}
+
+function updateCounter() {
+  var req = parseInt(document.getElementById('cnt-req').textContent, 10);
+  var filled = 0;
+  for (var i = 1; i <= req; i++) {
+    var el = document.getElementById('ni-' + i);
+    if (el && el.value.trim().length > 0) { filled++; }
+  }
+  var cnt = document.getElementById('cnt');
+  cnt.textContent = String(filled);
+  cnt.className = 'counter-num';
+  if (filled === req) { cnt.className += ' ok'; }
+  else if (filled === 0) { cnt.className += ' bad'; }
+}
+
+function getNames(count) {
+  var names = [];
+  for (var i = 1; i <= count; i++) {
+    var el = document.getElementById('ni-' + i);
+    names.push(el ? el.value.trim() : '');
+  }
+  return names;
+}
+
+function onCenter() {
+  var sel   = document.getElementById('center-sel');
+  var opt   = sel.options[sel.selectedIndex];
+  var c     = opt.getAttribute('data-count');
+  var badge = document.getElementById('center-badge');
+
+  if (c) {
+    var count = parseInt(c, 10);
+    document.getElementById('badge-num').textContent = c + ' \u0623\u0641\u0631\u0627\u062f';
+    badge.classList.add('show');
+    document.getElementById('names-lbl').textContent = '(' + c + ' \u0623\u0633\u0645\u0627\u0621 \u0645\u0637\u0644\u0648\u0628\u0629)';
+    buildNamesEditor(count);
+  } else {
+    badge.classList.remove('show');
+    document.getElementById('names-lbl').textContent = '';
+    renderDisabledEditor();
+  }
+}
+
+function showErr(msg) {
+  var e = document.getElementById('err');
+  e.textContent = msg;
+  e.classList.add('show');
+  setTimeout(function() { e.classList.remove('show'); }, 4500);
+}
+
+/* Row colors — inline style ensures printing works regardless of browser settings */
+var ODD_DAY   = '#dde0e4';
+var EVEN_DAY  = '#ced2d6';
+var ODD_SHIFT = '#ffffff';
+var EVEN_SHIFT= '#e8e9eb';
+var HEAD_DAY  = '#b8bcc2';
+var HEAD_SH   = '#c8ccd1';
+
+function generate() {
+  var cSel   = document.getElementById('center-sel');
+  var center = cSel.value;
+  var dd = parseInt(document.getElementById('d-day').value,   10);
+  var dm = parseInt(document.getElementById('d-month').value, 10);
+  var dy = parseInt(document.getElementById('d-year').value,  10);
+  var arif = document.getElementById('arif-name').value.trim();
+  var rank = document.getElementById('arif-rank').value.trim();
+
+  if (!center)       { return showErr('\u064a\u0631\u062c\u0649 \u0627\u062e\u062a\u064a\u0627\u0631 \u0627\u0644\u0645\u0631\u0643\u0632'); }
+  if (!dd||!dm||!dy) { return showErr('\u064a\u0631\u062c\u0649 \u0627\u062e\u062a\u064a\u0627\u0631 \u0627\u0644\u062a\u0627\u0631\u064a\u062e \u0643\u0627\u0645\u0644\u0627\u064b'); }
+  if (!arif)         { return showErr('\u064a\u0631\u062c\u0649 \u0625\u062f\u062e\u0627\u0644 \u0627\u0633\u0645 \u0627\u0644\u0639\u0631\u064a\u0641'); }
+  if (!rank)         { return showErr('\u064a\u0631\u062c\u0649 \u0625\u062f\u062e\u0627\u0644 \u0627\u0644\u0631\u062a\u0628\u0629'); }
+
+  var req   = parseInt(cSel.options[cSel.selectedIndex].getAttribute('data-count'), 10);
+  var names = getNames(req);
+  var empty = 0;
+  for (var ni = 0; ni < names.length; ni++) { if (!names[ni]) { empty++; } }
+  if (empty > 0) { return showErr('\u064a\u0648\u062c\u062f ' + empty + ' \u062d\u0642\u0644 \u0641\u0627\u0631\u063a، \u064a\u0631\u062c\u0649 \u062a\u0639\u0628\u0626\u0629 \u062c\u0645\u064a\u0639 \u0627\u0644\u0623\u0633\u0645\u0627\u0621'); }
+
+  /* Build rows */
+  var rows = [];
+  var ptr  = 0;
+  for (var day = 0; day < 14; day++) {
+    var date   = addH(dd, dm, dy, day);
+    var dow    = getDOW(date.d, date.m, date.y);
+    var shifts = [];
+    for (var s = 0; s < 3; s++) {
+      shifts.push([names[ptr % names.length], names[(ptr + 1) % names.length]]);
+      ptr += 2;
+    }
+    rows.push({ date: date, dow: dow, shifts: shifts });
+  }
+
+  var endDate = addH(dd, dm, dy, 13);
+
+  /* Date range badge */
+  document.getElementById('date-range-badge').innerHTML =
+    '<strong>\u0645\u0646:</strong> ' + fmtL(dd, dm, dy) +
+    '&nbsp;&nbsp;<strong>\u0625\u0644\u0649:</strong> ' + fmtL(endDate.d, endDate.m, endDate.y);
+
+  /* Print title */
+  document.getElementById('doc-print-title-text').textContent =
+    '\u0643\u0634\u0641 \u0627\u0644\u062e\u0641\u0627\u0631\u0627\u062a \u2014 \u0645\u0631\u0643\u0632 ' + center;
+  document.getElementById('doc-print-sub').textContent =
+    '\u0645\u0646 ' + fmtL(dd, dm, dy) + ' \u0625\u0644\u0649 ' + fmtL(endDate.d, endDate.m, endDate.y) +
+    ' | \u0627\u0644\u0641\u0648\u062c \u0627\u0644\u062b\u0627\u0644\u062b \u0628\u0627\u0644\u062d\u0631\u0633 \u0627\u0644\u0648\u0637\u0646\u064a';
+
+  /* Screen header */
+  document.getElementById('doc-title').textContent =
+    '\u0643\u0634\u0641 \u0627\u0644\u062e\u0641\u0627\u0631\u0627\u062a \u2014 \u0645\u0631\u0643\u0632 ' + center;
+  document.getElementById('doc-sub').textContent =
+    '\u0645\u0646 ' + fmtL(dd, dm, dy) + ' \u0644\u0645\u062f\u0629 14 \u064a\u0648\u0645\u0627\u064b';
+  document.getElementById('doc-meta').innerHTML =
+    '<strong>\u0645\u0646:</strong> ' + fmtS(dd, dm, dy) +
+    '&nbsp;|&nbsp;<strong>\u0625\u0644\u0649:</strong> ' + fmtS(endDate.d, endDate.m, endDate.y);
+  document.getElementById('doc-arif').textContent = arif;
+  document.getElementById('doc-rank').textContent = rank;
+
+  /* Table head */
+  var thead = document.getElementById('doc-head');
+  thead.innerHTML = '';
+  var hr = document.createElement('tr');
+
+  var thLabels = [
+    ['\u0627\u0644\u064a\u0648\u0645', '\u0627\u0644\u062a\u0627\u0631\u064a\u062e', HEAD_DAY, '78px'],
+    ['\u0627\u0644\u062e\u0641\u0627\u0631\u0629 \u0627\u0644\u0623\u0648\u0644\u0649', '06:00 \u2014 14:00', HEAD_SH, null],
+    ['\u0627\u0644\u062e\u0641\u0627\u0631\u0629 \u0627\u0644\u062b\u0627\u0646\u064a\u0629', '14:00 \u2014 22:00', HEAD_SH, null],
+    ['\u0627\u0644\u062e\u0641\u0627\u0631\u0629 \u0627\u0644\u062b\u0627\u0644\u062b\u0629', '22:00 \u2014 06:00', HEAD_SH, null]
+  ];
+
+  for (var ti = 0; ti < thLabels.length; ti++) {
+    var th = document.createElement('th');
+    th.style.backgroundColor = thLabels[ti][2];
+    th.style.color = '#000';
+    th.style.webkitPrintColorAdjust = 'exact';
+    th.style.printColorAdjust = 'exact';
+    if (thLabels[ti][3]) { th.style.width = thLabels[ti][3]; }
+    th.innerHTML = thLabels[ti][0] + '<small>' + thLabels[ti][1] + '</small>';
+    hr.appendChild(th);
+  }
+  thead.appendChild(hr);
+
+  /* Table body */
+  var tbody = document.getElementById('doc-body');
+  tbody.innerHTML = '';
+
+  for (var ri = 0; ri < rows.length; ri++) {
+    var row    = rows[ri];
+    var isOdd  = (ri % 2 === 0);
+    var dayBg  = isOdd ? ODD_DAY   : EVEN_DAY;
+    var shBg   = isOdd ? ODD_SHIFT : EVEN_SHIFT;
+
+    var tr = document.createElement('tr');
+
+    /* Day cell */
+    var tdDay = document.createElement('td');
+    tdDay.className = 'day-cell';
+    tdDay.style.backgroundColor = dayBg;
+    tdDay.style.webkitPrintColorAdjust = 'exact';
+    tdDay.style.printColorAdjust = 'exact';
+    tdDay.style.padding = '4px 4px';
+    tdDay.innerHTML =
+      '<div class="day-name">' + WEEKDAYS[row.dow] + '</div>' +
+      '<div class="day-date">' + fmtS(row.date.d, row.date.m, row.date.y) + '</div>';
+    tr.appendChild(tdDay);
+
+    /* Shift cells */
+    for (var si = 0; si < row.shifts.length; si++) {
+      var n1 = row.shifts[si][0];
+      var n2 = row.shifts[si][1];
+      var tdSh = document.createElement('td');
+      tdSh.className = 'shift-td';
+      tdSh.style.backgroundColor = shBg;
+      tdSh.style.webkitPrintColorAdjust = 'exact';
+      tdSh.style.printColorAdjust = 'exact';
+      tdSh.style.padding = '3px 4px';
+      tdSh.innerHTML =
+        '<div class="names-cell">' +
+          '<div class="name-tag">' + n1 + '</div>' +
+          '<div class="name-tag">' + n2 + '</div>' +
+        '</div>';
+      tr.appendChild(tdSh);
+    }
+
+    tbody.appendChild(tr);
+  }
+
+  var ps = document.getElementById('preview-section');
+  ps.style.display = 'block';
+  ps.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function backToForm() {
+  document.getElementById('preview-section').style.display = 'none';
+  window.scrollTo(0, 0);
+}
+</script>
+</body>
+</html>
