@@ -1,0 +1,1872 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light">
+<title>نظام كشف الخفارات</title>
+  <script src="./html2canvas.min.js"></script>
+<script src="./jspdf.umd.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap');
+
+:root {
+  --olive:       #5a6e3a;
+  --olive-dark:  #3d4d26;
+  --olive-light: #7a9450;
+  --olive-pale:  #e8f0de;
+  --beige:       #f5f2ec;
+  --beige-dark:  #ece8df;
+  --white:       #ffffff;
+  --text:        #2a2a2a;
+  --text-mid:    #555;
+  --border:      rgba(90,110,58,0.22);
+  --shadow:      0 2px 12px rgba(90,110,58,0.13);
+  --radius:      10px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  color-scheme: light;
+  font-family: 'Cairo', 'Segoe UI', Tahoma, Arial, sans-serif;
+  background: var(--beige);
+  min-height: 100vh;
+  padding: 24px 14px 40px;
+  display: flex; flex-direction: column; align-items: center; gap: 20px;
+}
+
+/* ===== FORM CARD ===== */
+.form-wrap {
+  width: 100%; max-width: 660px;
+  background: var(--white);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(90,110,58,0.15), 0 1px 0 rgba(255,255,255,0.8);
+  border: 1px solid rgba(90,110,58,0.15);
+}
+
+.form-header {
+  background: linear-gradient(135deg, var(--olive-dark) 0%, var(--olive) 100%);
+  padding: 18px 24px 16px;
+  text-align: center;
+  position: relative;
+}
+.form-header::after {
+  content: '';
+  position: absolute; bottom: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+}
+.form-header h1 { color: #fff; font-size: 1.2rem; font-weight: 900; letter-spacing: 0.5px; }
+.form-header p  { color: rgba(255,255,255,0.75); font-size: 0.8rem; margin-top: 3px; }
+
+.form-body  { padding: 22px 22px 18px; background: var(--white); }
+.form-group { margin-bottom: 16px; }
+
+label {
+  display: block; font-size: 0.8rem; font-weight: 700;
+  color: var(--olive-dark); margin-bottom: 6px; letter-spacing: 0.2px;
+}
+.req { color: #c0392b; }
+
+/* Glass-style inputs — unified height across all browsers */
+select, input[type="text"] {
+  width: 100%; padding: 8px 13px;
+  height: 46px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  font-family: 'Cairo', 'Segoe UI', Tahoma, Arial, sans-serif;
+  font-size: 16px;
+  color: var(--text); background: var(--white); direction: rtl;
+  -webkit-appearance: none; appearance: none;
+  box-shadow: var(--shadow), inset 0 1px 3px rgba(0,0,0,0.04);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%235a6e3a'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: left 11px center; padding-left: 30px;
+}
+select:focus, input:focus {
+  outline: none;
+  border-color: var(--olive);
+  box-shadow: 0 0 0 3px rgba(90,110,58,0.12), var(--shadow);
+}
+
+.form-row   { display: flex; gap: 14px; }
+.form-row > .form-group { flex: 1; margin-bottom: 0; }
+.form-row-3 { display: flex; gap: 8px; }
+.form-row-3 > select { flex: 1; }
+
+/* Center badge */
+.center-badge {
+  background: var(--olive-pale);
+  border: 1px solid rgba(90,110,58,0.2);
+  color: var(--olive-dark);
+  padding: 7px 14px; border-radius: 8px; font-size: 0.82rem;
+  margin-top: 8px; gap: 8px; display: none; align-items: center;
+}
+.center-badge.show { display: flex; }
+.center-badge .num {
+  background: #D4AF37; color: #fff;
+  padding: 2px 10px; border-radius: 12px; font-weight: 700; font-size: 0.82rem;
+}
+
+/* ===== NAMES EDITOR ===== */
+.names-label-row {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 8px;
+}
+.names-label-row label { margin-bottom: 0; }
+
+/* Alert box — modern accent style */
+.names-hint {
+  background: #f4f7f2;
+  border: 1px solid rgba(90,110,58,0.15);
+  border-right: 4px solid var(--olive);
+  border-radius: 8px 0 0 8px;
+  box-shadow: 0 1px 6px rgba(90,110,58,0.08);
+  padding: 10px 14px;
+  margin-bottom: 12px;
+  gap: 8px;
+  align-items: center;
+  line-height: 1.5;
+  display: none;
+}
+.names-hint.visible {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: flex;
+}
+.names-hint-icon {
+  flex-shrink: 0;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+}
+.names-hint-text {
+  font-size: 0.79rem;
+}
+.names-hint-text strong {
+  color: var(--olive-dark);
+  font-weight: 700;
+}
+.names-hint-text span {
+  color: #555;
+  font-weight: 400;
+}
+
+/* صف أزرار مسح الكل + تعديل */
+.form-bottom-row {
+  display: none;
+  flex-direction: row-reverse;
+  gap: 10px;
+  margin-top: 10px;
+}
+.btn-clear {
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  flex: 1;
+  font-size: 0.82rem; font-weight: 700; font-family: inherit;
+  color: #c0392b;
+  background: #fff5f5;
+  border: 1.5px solid #f5c6c6;
+  border-radius: var(--radius);
+  padding: 9px 12px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.btn-clear:active { background: #fde8e8; border-color: #e74c3c; }
+.btn-edit-inline {
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  flex: 1;
+  font-size: 0.82rem; font-weight: 700; font-family: inherit;
+  color: var(--olive-dark);
+  background: #fff;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  padding: 9px 12px;
+  cursor: pointer;
+  transition: background 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.btn-edit-inline:active { background: var(--olive-pale); }
+
+/* Container: no outer border — each row is its own card */
+.names-editor {
+  display: flex; flex-direction: column; gap: 6px;
+  background: transparent; direction: rtl;
+}
+
+/* Each row = independent card */
+.name-row {
+  display: flex; align-items: center; gap: 0;
+  background: var(--white);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  transition: box-shadow 0.15s, border-color 0.15s;
+}
+.name-row:hover { border-color: rgba(90,110,58,0.35); }
+.name-row.sortable-ghost { opacity: 0.35; background: var(--olive-pale); }
+.name-row.sortable-chosen { box-shadow: 0 6px 18px rgba(90,110,58,0.22); border-color: var(--olive); }
+
+/* Number badge — square, RIGHT side */
+.name-num {
+  width: 46px; min-width: 46px; max-width: 46px;
+  text-align: center; font-size: 0.75rem; font-weight: 700;
+  color: #fff; background: var(--olive-light);
+  align-self: stretch;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.25s; flex-shrink: 0;
+}
+.name-num.done { background: #D4AF37; }
+
+/* Input field — middle. border-radius and border MUST be zero to blend with outer .name-row card */
+.name-input {
+  flex: 1; border: none !important; outline: none;
+  padding: 8px 10px; font-size: 16px;
+  height: auto;                        /* override the global height:46px for outer fields */
+  font-family: 'Cairo', 'Segoe UI', Tahoma, Arial, sans-serif;
+  color: var(--text); background: transparent; direction: rtl; width: 100%;
+  -webkit-appearance: none; appearance: none;
+  border-radius: 0 !important;         /* zero inner radius so it merges with .name-row card */
+}
+.name-input:focus { background: #f8faf5; }
+
+/* Drag handle — LEFT side (ltr end, rtl left) */
+.drag-handle {
+  padding: 0 8px; cursor: grab; color: #c8c8c8; font-size: 1rem;
+  align-self: stretch;
+  display: flex; align-items: center; justify-content: center;
+  min-width: 28px; flex-shrink: 0;
+  touch-action: none;
+  order: 1; /* push to left in ltr rendering = visual left */
+}
+.drag-handle:active { cursor: grabbing; color: var(--olive); }
+
+.names-counter {
+  display: flex; justify-content: flex-end;
+  gap: 5px; margin-top: 5px; font-size: 0.76rem; color: #888;
+}
+.counter-num { font-weight: 700; color: var(--olive-dark); }
+.counter-num.ok  { color: #D4AF37; }
+.counter-num.bad { color: #e74c3c; }
+
+.divider { height: 1px; background: var(--beige-dark); margin: 18px 0; }
+
+.btn-gen {
+  width: 100%; padding: 13px;
+  background: linear-gradient(135deg, var(--olive-dark), var(--olive));
+  color: #fff; border: none; border-radius: var(--radius);
+  font-family: 'Cairo', 'Segoe UI', Tahoma, Arial, sans-serif;
+  font-size: 1rem; font-weight: 700; cursor: pointer;
+  box-shadow: 0 4px 14px rgba(90,110,58,0.3);
+  transition: box-shadow 0.2s, transform 0.1s;
+  -webkit-tap-highlight-color: transparent;
+}
+.btn-gen:active { transform: scale(0.98); box-shadow: 0 2px 8px rgba(90,110,58,0.2); }
+
+.error {
+  background: #fdf0f0; border: 1px solid #e74c3c; border-radius: 8px;
+  padding: 9px 14px; color: #c0392b; font-size: 0.82rem;
+  display: none; margin-top: 10px;
+}
+.error.show { display: block; }
+
+/* ===== PREVIEW ===== */
+#preview-section { display: none; width: 100%; max-width: 720px; }
+
+/* لوحة التحكم */
+.preview-actions {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: 0 4px 16px rgba(90,110,58,0.10);
+  margin-bottom: 14px;
+  overflow: hidden;
+}
+
+/* شريط التاريخ */
+.date-range-badge {
+  background: var(--olive-pale);
+  border-bottom: 1px solid rgba(90,110,58,0.12);
+  padding: 8px 16px;
+  font-size: 0.82rem; color: var(--olive-dark); line-height: 1.8;
+  text-align: center;
+}
+.date-range-badge strong { color: var(--olive-dark); font-weight: 800; }
+
+/* صفوف الأزرار */
+.ctrl-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+}
+.ctrl-row + .ctrl-row {
+  border-top: 1px solid rgba(90,110,58,0.08);
+}
+.ctrl-label {
+  font-size: 0.88rem; font-weight: 700;
+  color: var(--olive-dark);
+}
+.ctrl-label small {
+  display: block; font-size: 0.72rem;
+  color: #aaa; font-weight: 400; margin-top: 1px;
+}
+.ctrl-btns { display: flex; gap: 10px; align-items: center; }
+
+/* أزرار الأيقونات الدائرية */
+.icon-btn {
+  width: 42px; height: 42px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(90,110,58,0.08);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.15s, transform 0.1s;
+  flex-shrink: 0;
+}
+.icon-btn:active { background: rgba(90,110,58,0.2); transform: scale(0.93); }
+.icon-btn svg { width: 20px; height: 20px; }
+.icon-btn.primary { background: var(--olive); }
+.icon-btn.primary svg { stroke: #fff; }
+.icon-btn.danger  { background: rgba(192,57,43,0.09); }
+.icon-btn.danger svg { stroke: #c0392b; }
+
+/* ===== INVENTORY PRINT SECTION ===== */
+#inventory-print-section { display: none; }
+
+.inv-page {
+  page-break-after: always;
+  padding: 8mm 10mm;
+  font-family: 'Cairo', 'Segoe UI', Tahoma, Arial, sans-serif;
+  direction: rtl; font-size: 11pt; background: #fff;
+}
+.inv-page:last-child { page-break-after: avoid; }
+.inv-ministry { text-align: center; font-size: 9pt; color: #555; margin-bottom: 2px; }
+.inv-title { text-align: center; font-size: 13pt; font-weight: 900; color: #000; margin-bottom: 3px; }
+.inv-subtitle { text-align: center; font-size: 9.5pt; color: #333; margin-bottom: 8px; line-height: 1.8; }
+.inv-subtitle strong { color: #000; }
+.inv-shift-block { margin-bottom: 8px; }
+.inv-shift-title {
+  background: #3d4d26; color: #fff; font-size: 9.5pt; font-weight: 700;
+  padding: 4px 10px; text-align: center;
+  -webkit-print-color-adjust: exact; print-color-adjust: exact;
+}
+table.inv-tbl { width: 100%; border-collapse: collapse; font-size: 9pt; direction: rtl; }
+table.inv-tbl th, table.inv-tbl td { border: 1px solid #000; padding: 4px 6px; text-align: center; vertical-align: middle; }
+table.inv-tbl th { background: #e8f0de; font-weight: 700; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+table.inv-tbl td.names-col { text-align: right; line-height: 1.9; }
+table.inv-tbl td.assets-col { text-align: right; font-size: 8.5pt; line-height: 1.7; }
+table.inv-tbl td.sign-col { width: 55px; font-size: 8pt; color: #bbb; }
+table.inv-tbl tr.notes-row td { text-align: right; font-size: 8pt; color: #666; }
+.inv-footer-notes {
+  margin-top: 7px; border: 1px solid #ccc; border-radius: 4px;
+  padding: 6px 10px; background: #fafafa; font-size: 8pt; color: #444; line-height: 1.9;
+  -webkit-print-color-adjust: exact; print-color-adjust: exact;
+}
+.inv-sign-bar { margin-top: 7px; display: flex; justify-content: space-between; font-size: 9pt; }
+.inv-sign-item { text-align: center; min-width: 110px; }
+.inv-sign-item .sign-lbl { font-weight: 700; margin-bottom: 18px; font-size: 8.5pt; }
+.inv-sign-item .sign-line { border-bottom: 1px solid #000; margin-top: 3px; }
+
+
+
+/* ===== PRINTABLE ===== */
+#printable {
+  background: #fff; border: 1px solid #c5cdd5;
+  border-radius: 10px; overflow: hidden;
+  font-family: 'Cairo', 'Segoe UI', Tahoma, Arial, sans-serif; direction: rtl;
+}
+
+/* Table wrapper — no scroll on screen, table fits width naturally */
+.table-responsive {
+  width: 100%;
+  overflow: hidden;
+}
+.doc-print-title {
+  display: none; text-align: center;
+  padding: 12px 12px 7px; border-bottom: 2px solid #000;
+}
+.doc-print-title h1 { font-size: 15pt; font-weight: 900; color: #000; }
+.doc-print-title .print-sub { font-size: 8pt; color: #333; margin-top: 3px; }
+
+.doc-header {
+  background: var(--olive); padding: 12px 16px;
+  border-bottom: 2px solid var(--olive-dark);
+  display: flex; justify-content: space-between; align-items: center;
+  flex-wrap: wrap; gap: 8px;
+}
+.doc-header .title-block h2 { color: #fff; font-size: 0.95rem; font-weight: 700; }
+.doc-header .title-block p  { color: rgba(255,255,255,0.75); font-size: 0.73rem; margin-top: 2px; }
+.doc-header .meta { color: rgba(255,255,255,0.75); font-size: 0.73rem; line-height: 1.7; text-align: left; }
+.doc-header .meta strong { color: #fff; }
+
+table.doc { width: 100%; border-collapse: collapse; direction: rtl; font-size: 0.79rem; }
+table.doc thead th {
+  padding: 8px 5px; text-align: center;
+  border: 1px solid #000; font-weight: 700; white-space: nowrap;
+  -webkit-print-color-adjust: exact; print-color-adjust: exact;
+}
+table.doc thead th small { display: block; font-size: 0.66rem; font-weight: 500; margin-top: 1px; }
+table.doc tbody td {
+  padding: 4px 4px; text-align: center;
+  border: 1px solid #000; vertical-align: middle;
+  -webkit-print-color-adjust: exact; print-color-adjust: exact;
+}
+.day-name { font-weight: 800; font-size: 0.87rem; color: #1a2330; }
+.day-date { font-size: 0.72rem; color: #555; margin-top: 1px; }
+.names-cell { display: flex; flex-direction: column; gap: 1px; }
+.name-tag { border-radius: 3px; padding: 2px 4px; font-size: 0.83rem; font-weight: 700; color: #1e2630; text-align: center; }
+
+/* 4-person cell */
+.names-cell-4 { display: flex; flex-direction: column; gap: 0; }
+.shift-group {
+  display: flex; flex-direction: row; align-items: stretch; padding: 2px 2px;
+}
+.shift-group.support { border-top: 1px solid #bbb; background: transparent; }
+.shift-group-lbl {
+  font-size: 0.55rem; color: #555; font-weight: 800;
+  background: #e0e0e0; border-radius: 3px;
+  padding: 3px 2px; margin-left: 3px;
+  display: flex; align-items: center; justify-content: center;
+  min-width: 11px;
+  writing-mode: vertical-lr; -webkit-writing-mode: vertical-lr;
+  -webkit-transform: rotate(180deg); transform: rotate(180deg);
+  letter-spacing: 1px;
+  -webkit-print-color-adjust: exact; print-color-adjust: exact;
+}
+.shift-names { display: flex; flex-direction: column; flex: 1; gap: 1px; padding: 1px 2px; background: transparent; }
+.name-tag-4 { padding: 1px 3px; font-size: 0.78rem; font-weight: 700; color: #1e2630; text-align: center; line-height: 1.35; background: transparent; }
+
+.doc-footer {
+  border-top: 2px solid #000; background: #fff;
+  padding: 10px 18px; display: flex;
+  justify-content: flex-end; align-items: center; flex-wrap: wrap; gap: 8px;
+}
+.footer-sig .lbl { font-size: 0.71rem; color: #888; font-weight: 600; }
+.footer-sig .val { font-size: 0.72rem; font-weight: 600; color: #3d4b5c; }
+.footer-sig .rnk { font-size: 0.74rem; color: #526170; }
+
+/* ===== PRINT ===== */
+@page { size: A4 portrait; margin: 0; }
+
+@media print {
+  html, body { height: auto !important; margin: 0 !important; }
+  body { background: white !important; padding: 10mm !important; }
+
+  /* ── مخفي دائماً في الطباعة ── */
+  .form-wrap, .preview-actions, #inventory-print-section { display: none !important; }
+
+  /* ── كشف الخفارات يظهر كما هو ── */
+  #preview-section   { display: block !important; max-width: 100% !important; }
+  #printable         { display: block !important; border: none !important; border-radius: 0 !important; overflow: visible !important; }
+  .table-responsive  { overflow: visible !important; }
+  .doc-print-title   { display: block !important; }
+  .doc-header        { display: none !important; }
+
+  /* ── ألوان الطباعة ── */
+  -webkit-print-color-adjust: exact !important;
+  print-color-adjust: exact !important;
+  table.doc { page-break-inside: avoid; font-size: 7.6pt !important; }
+  table.doc thead th { padding: 5px 3px !important; font-size: 7.6pt !important; border: 1px solid #000 !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+  table.doc tbody td  { padding: 2px 3px !important; border: 1px solid #000 !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+  .doc-footer         { background: #fff !important; border-top: 1px solid #000 !important; padding: 5px 10px !important; }
+  .name-tag           { font-size: 7.8pt !important; padding: 1px 3px !important; }
+  .name-tag-4         { font-size: 7pt   !important; padding: 1px 2px !important; line-height: 1.25 !important; }
+  .shift-group-lbl    { font-size: 5.5pt !important; padding: 2px 1px !important; min-width: 9px !important; background: #e0e0e0 !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+  .shift-group        { padding: 1px 2px !important; }
+  .shift-group.support{ border-top: 1px solid #bbb !important; }
+  .day-name           { font-size: 7.8pt !important; }
+  .day-date           { font-size: 6.8pt !important; }
+  .doc-print-title h1 { font-size: 13pt !important; }
+  .doc-print-title .print-sub { font-size: 7.5pt !important; }
+  .names-cell         { gap: 0 !important; }
+}
+
+/* ===== MOBILE SCREEN — fluid scaling, NO horizontal scroll ===== */
+@media screen and (max-width: 600px) {
+  /* Scale entire table font to fit viewport width */
+  table.doc { font-size: 2.2vw; width: 100%; table-layout: fixed; }
+  table.doc thead th { padding: 4px 2px; font-size: 2.2vw; white-space: normal; word-break: break-word; }
+  table.doc thead th small { font-size: 1.8vw; margin-top: 0; }
+  table.doc tbody td { padding: 3px 2px; }
+
+  /* Day column narrower */
+  table.doc thead th.day-col,
+  table.doc tbody td.day-cell { width: 14vw; min-width: 0; }
+
+  .day-name { font-size: 2.3vw; font-weight: 700; }
+  .day-date { font-size: 1.9vw; margin-top: 0; }
+
+  /* Names fit cell */
+  .name-tag { font-size: 2vw; padding: 1px 2px; white-space: normal; word-break: break-all; }
+  .name-tag-4 { font-size: 1.9vw; padding: 1px 1px; }
+  .shift-group-lbl { font-size: 1.6vw; min-width: 7px; padding: 1px 1px; }
+  .names-cell { gap: 0; }
+
+  /* Header */
+  .doc-header { padding: 8px 10px; }
+  .doc-header .title-block h2 { font-size: 3vw; }
+  .doc-header .title-block p  { font-size: 2.3vw; }
+  .doc-header .meta { font-size: 2.3vw; }
+}
+
+@media screen and (max-width: 400px) {
+  table.doc { font-size: 2vw; }
+  table.doc thead th { font-size: 2vw; }
+  table.doc thead th small { font-size: 1.6vw; }
+  .day-name { font-size: 2.1vw; }
+  .day-date { font-size: 1.7vw; }
+  .name-tag { font-size: 1.8vw; }
+  .name-tag-4 { font-size: 1.7vw; }
+  .doc-header .title-block h2 { font-size: 2.8vw; }
+}
+</style>
+</head>
+<body>
+
+<!-- FORM -->
+<div class="form-wrap">
+  <div class="form-header">
+    <h1>نظام كشف الخفارات</h1>
+    <p>الفوج الثالث بالحرس الوطني</p>
+  </div>
+  <div class="form-body">
+
+    <div class="form-group">
+      <label><span class="req">* </span>المركز</label>
+      <select id="center-sel" onchange="onCenter()">
+        <option value="">-- اختر المركز --</option>
+        <option value="إرسال إذاعة الخمرة" data-count="12">إرسال إذاعة الخمرة</option>
+        <option value="صمام 80"       data-count="6">صمام 80</option>
+        <option value="صمام 40"       data-count="6">صمام 40</option>
+        <option value="الآليات"       data-count="6">الآليات</option>
+      </select>
+      <div class="center-badge" id="center-badge">
+        <span>عدد الأفراد المطلوب:</span>
+        <span class="num" id="badge-num"></span>
+      </div>
+      <p id="center-auto-note" style="display:none; margin-top:6px; font-size:0.75rem; color:#7a9450; padding-right:2px;">
+        النظام يعمل تلقائياً حسب الخطة الأمنية لكل مركز.
+      </p>
+    </div>
+
+    <div class="form-group">
+      <label><span class="req">* </span>تاريخ بداية الاستلام (هجري)</label>
+      <div class="form-row-3">
+        <select id="d-day"><option value="">اليوم</option></select>
+        <select id="d-month">
+          <option value="">الشهر</option>
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+          <option value="4">4</option>
+          <option value="5">5</option>
+          <option value="6">6</option>
+          <option value="7">7</option>
+          <option value="8">8</option>
+          <option value="9">9</option>
+          <option value="10">10</option>
+          <option value="11">11</option>
+          <option value="12">12</option>
+        </select>
+        <select id="d-year"><option value="">السنة</option></select>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label><span class="req">* </span>اسم العريف</label>
+        <input type="text" id="arif-name" placeholder="اسم العريف">
+      </div>
+      <div class="form-group">
+        <label><span class="req">* </span>اختر الرتبة</label>
+        <select id="arif-rank">
+          <option value="">الرتبة</option>
+          <option value="جندي أول">جندي أول</option>
+          <option value="عريف">عريف</option>
+          <option value="وكيل رقيب">وكيل رقيب</option>
+          <option value="رقيب">رقيب</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-group" style="margin-top: 20px;">
+      <div class="names-hint" id="names-hint">
+        <div class="names-hint-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3d4d26" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+        </div>
+        <div class="names-hint-text">
+          <strong>ملاحظة: </strong><span>سيتم توزيع الخفارات تلقائياً بناءً على ترتيب إدخالك للأسماء هنا.</span>
+        </div>
+      </div>
+      <div class="names-label-row">
+        <label style="margin-bottom:0;">
+          <span class="req">* </span>أسماء الأفراد
+          <span id="names-lbl" style="color:#aaa;font-weight:400;font-size:0.75rem;"></span>
+        </label>
+      </div>
+      <div class="names-editor" id="names-editor">
+        <div class="name-row">
+          <div class="name-num">—</div>
+          <input class="name-input" placeholder="اختر المركز أولاً" disabled="disabled">
+          <div class="drag-handle" style="color:#e0e0e0;">⠿</div>
+        </div>
+      </div>
+      <div class="names-counter" id="names-counter" style="display:none;">
+        مُدخَل: <span class="counter-num" id="cnt">0</span> / <span id="cnt-req">0</span>
+      </div>
+      <div class="form-bottom-row" id="form-bottom-row">
+        <button class="btn-clear" id="btn-clear" onclick="clearAllNames()">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+          مسح الكل
+        </button>
+        <button class="btn-edit-inline" onclick="backToForm()">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          تعديل
+        </button>
+      </div>
+    </div>
+
+    <div class="error" id="err"></div>
+    <div class="divider"></div>
+    <button class="btn-gen" onclick="generate()">⚙ توليد كشف الخفارات</button>
+    <p style="margin-top:12px; font-size:0.72rem; color:#aaa; text-align:center; line-height:1.6;">
+      ⚠️ تنبيه: هذا النظام هو اجتهاد شخصي ولا يمثل أي جهة رسمية. النظام يعمل داخل متصفحك فقط ولا يرتبط بأي قاعدة بيانات.
+    </p>
+  </div>
+</div>
+
+<!-- PREVIEW -->
+<div id="preview-section">
+  <div class="preview-actions">
+
+    <!-- شريط التاريخ -->
+    <div class="date-range-badge" id="date-range-badge">—</div>
+
+    <!-- صف كشف الخفارات -->
+    <div class="ctrl-row">
+      <div class="ctrl-label">
+        كشف الخفارات
+        <small>طباعة أو تنزيل أو مشاركة</small>
+      </div>
+      <div class="ctrl-btns">
+        <!-- طباعة -->
+        <button class="icon-btn primary" title="طباعة / PDF"
+          onclick="document.body.classList.add('print-mode-schedule'); window.print(); document.body.classList.remove('print-mode-schedule');">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/>
+          </svg>
+        </button>
+        <!-- تنزيل HTML للكشف -->
+        <button class="icon-btn" title="تنزيل الكشف" onclick="downloadSchedule()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#5a6e3a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+        </button>
+        <!-- مشاركة -->
+        <button class="icon-btn" title="مشاركة الكشف" onclick="shareSchedule()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#5a6e3a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- صف جرد العهد -->
+    <div class="ctrl-row">
+      <div class="ctrl-label">
+        جرد العهد
+        <small>تحميل (يفتح للطباعة كـ PDF) أو مشاركة</small>
+      </div>
+      <div class="ctrl-btns">
+        <!-- تحميل -->
+        <button class="icon-btn primary" title="تحميل نماذج الجرد" onclick="downloadInventory()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+        </button>
+        <!-- مشاركة -->
+        <button class="icon-btn" title="مشاركة الجرد" onclick="shareInventory()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#5a6e3a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+  </div>
+  <div id="printable">
+    <div class="doc-print-title">
+      <h1 id="doc-print-title-text">كشف الخفارات</h1>
+      <div class="print-sub" id="doc-print-sub"></div>
+    </div>
+    <div class="doc-header">
+      <div class="title-block">
+        <h2 id="doc-title"></h2>
+        <p  id="doc-sub"></p>
+      </div>
+      <div class="meta" id="doc-meta"></div>
+    </div>
+    <div class="table-responsive">
+    <table class="doc">
+      <thead id="doc-head"></thead>
+      <tbody id="doc-body"></tbody>
+    </table>
+    </div>
+    <div class="doc-footer">
+      <div class="footer-sig">
+        <div class="lbl">عريف المجموعة</div>
+        <div class="val" id="doc-arif"></div>
+        <div class="rnk" id="doc-rank"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- INVENTORY PRINT SECTION — خارج preview-section تماماً (sibling) -->
+<div id="inventory-print-section"></div>
+
+<script>
+var MONTHS   = ['محرم','صفر','ربيع الأول','ربيع الثاني','جمادى الأولى','جمادى الثانية','رجب','شعبان','رمضان','شوال','ذو القعدة','ذو الحجة'];
+var WEEKDAYS = ['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
+var LS_KEY   = 'khafarat_names';
+var LS_CTR   = 'khafarat_center';
+var sortableInstance = null;
+var currentCount = 0;
+
+/* ---- Init ---- */
+function initDropdowns() {
+  var sd = document.getElementById('d-day');
+  if (sd && sd.options.length <= 1) {
+    for (var i = 1; i <= 30; i++) {
+      var o = document.createElement('option');
+      o.value = String(i); o.text = String(i); sd.add(o);
+    }
+  }
+  var sy = document.getElementById('d-year');
+  if (sy && sy.options.length <= 1) {
+    var base = 1446;
+    for (var y = base - 2; y <= base + 1; y++) {
+      var oy = document.createElement('option');
+      oy.value = String(y); oy.text = String(y);
+      /* No default selection — user must choose */
+      sy.add(oy);
+    }
+  }
+  /* Restore saved center & names */
+  var savedCenter = '';
+  try { savedCenter = localStorage.getItem(LS_CTR) || ''; } catch(e) {}
+  if (savedCenter) {
+    var cSel = document.getElementById('center-sel');
+    for (var ci = 0; ci < cSel.options.length; ci++) {
+      if (cSel.options[ci].value === savedCenter) {
+        cSel.selectedIndex = ci; break;
+      }
+    }
+    onCenter(true); /* true = restore from LS */
+  } else {
+    renderDisabledEditor();
+  }
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initDropdowns);
+} else { initDropdowns(); }
+window.addEventListener('load', function() {
+  var sd = document.getElementById('d-day');
+  if (sd && sd.options.length <= 1) { initDropdowns(); }
+});
+
+function renderDisabledEditor() {
+  var editor = document.getElementById('names-editor');
+  editor.innerHTML = '<div class="name-row"><div class="name-num">—</div><input class="name-input" placeholder="اختر المركز أولاً" disabled="disabled"><div class="drag-handle" style="color:#e0e0e0;">⠿</div></div>';
+  document.getElementById('names-counter').style.display = 'none';
+  document.getElementById('form-bottom-row').style.display = 'none';
+  document.getElementById('names-hint').classList.remove('visible');
+  if (sortableInstance) { try { sortableInstance.destroy(); } catch(e){} sortableInstance = null; }
+}
+
+/* ---- Sortable init ---- */
+function initSortable() {
+  var editor = document.getElementById('names-editor');
+  if (sortableInstance) { try { sortableInstance.destroy(); } catch(e){} sortableInstance = null; }
+  if (typeof Sortable !== 'undefined') {
+    sortableInstance = Sortable.create(editor, {
+      handle: '.drag-handle',
+      animation: 150,
+      ghostClass: 'sortable-ghost',
+      chosenClass: 'sortable-chosen',
+      onEnd: function() { refreshNumbers(); saveNamesToLS(); }
+    });
+  }
+}
+
+/* Refresh sequential numbers after drag */
+function refreshNumbers() {
+  var editor = document.getElementById('names-editor');
+  var rows = editor.querySelectorAll('.name-row');
+  for (var i = 0; i < rows.length; i++) {
+    var num = rows[i].querySelector('.name-num');
+    if (num) { num.textContent = String(i + 1); }
+  }
+  updateCounter();
+}
+
+/* ---- Names editor ---- */
+function buildNamesEditor(count, savedNames) {
+  var editor = document.getElementById('names-editor');
+  editor.innerHTML = '';
+  currentCount = count;
+  for (var i = 1; i <= count; i++) {
+    var row = document.createElement('div');
+    row.className = 'name-row';
+
+    /* Number badge — rightmost (RTL start) */
+    var num = document.createElement('div');
+    num.className = 'name-num';
+    num.id = 'nn-' + i;
+    num.textContent = String(i);
+
+    /* Input — middle */
+    var inp = document.createElement('input');
+    inp.className = 'name-input';
+    inp.type = 'text';
+    inp.id = 'ni-' + i;
+    inp.placeholder = 'الاسم ' + i;
+    inp.setAttribute('data-idx', String(i));
+    if (savedNames && savedNames[i-1]) {
+      inp.value = savedNames[i-1];
+      num.classList.add('done');
+    }
+    inp.addEventListener('input', function() {
+      var idx = parseInt(this.getAttribute('data-idx'), 10);
+      onNameInput(idx);
+      saveNamesToLS();
+    });
+
+    /* Drag handle — leftmost (order:1 pushes to left visually) */
+    var handle = document.createElement('div');
+    handle.className = 'drag-handle';
+    handle.innerHTML = '⠿';
+
+    row.appendChild(num);
+    row.appendChild(inp);
+    row.appendChild(handle);
+    editor.appendChild(row);
+  }
+  var counter = document.getElementById('names-counter');
+  counter.style.display = 'flex';
+  document.getElementById('cnt-req').textContent = String(count);
+  document.getElementById('form-bottom-row').style.display = 'flex';
+  document.getElementById('names-hint').classList.add('visible');
+  updateCounter();
+  initSortable();
+}
+
+function onNameInput(i) {
+  /* Find the row with data-idx = i and update its .name-num */
+  var inp = document.getElementById('ni-' + i);
+  var row = inp ? inp.parentNode : null;
+  if (row) {
+    var num = row.querySelector('.name-num');
+    if (num) {
+      if (inp.value.trim().length > 0) { num.classList.add('done'); }
+      else { num.classList.remove('done'); }
+    }
+  }
+  updateCounter();
+}
+
+function updateCounter() {
+  var editor = document.getElementById('names-editor');
+  var inputs = editor.querySelectorAll('.name-input');
+  var req = currentCount;
+  var filled = 0;
+  for (var i = 0; i < inputs.length; i++) {
+    if (inputs[i].value.trim().length > 0) { filled++; }
+  }
+  var cnt = document.getElementById('cnt');
+  if (!cnt) return;
+  cnt.textContent = String(filled);
+  cnt.className = 'counter-num';
+  if (filled === req && req > 0) { cnt.className += ' ok'; }
+  else if (filled === 0) { cnt.className += ' bad'; }
+}
+
+/* Read names in CURRENT VISUAL ORDER (after drag) */
+function getNamesByOrder() {
+  var editor = document.getElementById('names-editor');
+  var inputs = editor.querySelectorAll('.name-input');
+  var names = [];
+  for (var i = 0; i < inputs.length; i++) {
+    names.push(inputs[i].value.trim());
+  }
+  return names;
+}
+
+/* Save/load names */
+function saveNamesToLS() {
+  try {
+    var names = getNamesByOrder();
+    localStorage.setItem(LS_KEY, JSON.stringify(names));
+    var center = document.getElementById('center-sel').value;
+    localStorage.setItem(LS_CTR, center);
+  } catch(e) {}
+}
+function loadNamesFromLS() {
+  try {
+    var raw = localStorage.getItem(LS_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch(e) { return null; }
+}
+
+function clearAllNames() {
+  var editor = document.getElementById('names-editor');
+  var inputs = editor.querySelectorAll('.name-input');
+  for (var i = 0; i < inputs.length; i++) {
+    inputs[i].value = '';
+    var num = inputs[i].parentNode ? inputs[i].parentNode.querySelector('.name-num') : null;
+    if (num) { num.classList.remove('done'); }
+  }
+  updateCounter();
+  try { localStorage.removeItem(LS_KEY); } catch(e) {}
+}
+
+function onCenter(restoreLS) {
+  var sel = document.getElementById('center-sel');
+  var opt = sel.options[sel.selectedIndex];
+  var c   = opt.getAttribute('data-count');
+  var badge = document.getElementById('center-badge');
+
+  if (c && c !== '') {
+    var count = parseInt(c, 10);
+    currentCount = count;
+    document.getElementById('badge-num').textContent = c + ' أفراد';
+    badge.style.display = 'flex'; badge.className = 'center-badge show';
+    document.getElementById('names-lbl').textContent = '(' + c + ' أسماء مطلوبة)';
+    document.getElementById('center-auto-note').style.display = 'block';
+
+    var savedNames = null;
+    if (restoreLS) { savedNames = loadNamesFromLS(); }
+    buildNamesEditor(count, savedNames);
+
+    if (!restoreLS) {
+      try { localStorage.removeItem(LS_KEY); } catch(e) {}
+    }
+    saveNamesToLS();
+  } else {
+    badge.style.display = 'none'; badge.className = 'center-badge';
+    document.getElementById('names-lbl').textContent = '';
+    document.getElementById('center-auto-note').style.display = 'none';
+    currentCount = 0;
+    renderDisabledEditor();
+    try { localStorage.removeItem(LS_CTR); } catch(e) {}
+  }
+}
+
+function showErr(msg) {
+  var e = document.getElementById('err');
+  e.textContent = msg; e.classList.add('show');
+  setTimeout(function() { e.classList.remove('show'); }, 4500);
+}
+
+/* ---- Date helpers ---- */
+function hijriToJDN(d, m, y) {
+  return Math.floor((11*y+3)/30) + Math.floor(354*y) + Math.floor(30*m) - Math.floor((m-1)/2) + d + 1948440 - 385;
+}
+function getDOW(d,m,y) { return (hijriToJDN(d,m,y)+1)%7; }
+function dimOfMonth(mo) { return (mo%2===1)?30:29; }
+function addH(d,m,y,n) {
+  d=d+n;
+  while(d>dimOfMonth(m)){d-=dimOfMonth(m);m++;if(m>12){m=1;y++;}}
+  return{d:d,m:m,y:y};
+}
+function pad2(n) { return n<10?'0'+n:String(n); }
+function fmtS(d,m,y) { return y+'/'+pad2(m)+'/'+pad2(d); }
+function fmtL(d,m,y) { return d+' '+MONTHS[m-1]+' '+y+'هـ'; }
+
+/* ---- Row/color constants ---- */
+var ODD_DAY='#ebebeb', EVEN_DAY='#ebebeb', ODD_SHIFT='#ffffff', EVEN_SHIFT='#ffffff';
+var HEAD_DAY='#ebebeb', HEAD_SH='#ebebeb';
+
+/* ---- Generate ---- */
+function generate() {
+  var cSel   = document.getElementById('center-sel');
+  var center = cSel.value;
+  var dd = parseInt(document.getElementById('d-day').value,   10);
+  var dm = parseInt(document.getElementById('d-month').value, 10);
+  var dy = parseInt(document.getElementById('d-year').value,  10);
+  var arif = document.getElementById('arif-name').value.trim();
+  var rank = document.getElementById('arif-rank').value;
+
+  if (!center)       { return showErr('يرجى اختيار المركز'); }
+  if (!dd||!dm||!dy) { return showErr('يرجى اختيار التاريخ كاملاً'); }
+  if (!arif)         { return showErr('يرجى إدخال اسم العريف'); }
+  if (!rank)         { return showErr('يرجى اختيار الرتبة'); }
+
+  /* Read names in VISUAL ORDER after any drag-reorder */
+  var names = getNamesByOrder();
+  var req   = parseInt(cSel.options[cSel.selectedIndex].getAttribute('data-count'), 10);
+  /* filter to required count (in case editor has stale inputs) */
+  names = names.slice(0, req);
+  var empty = 0;
+  for (var ni = 0; ni < names.length; ni++) { if (!names[ni]) { empty++; } }
+  if (empty > 0) { return showErr('يوجد ' + empty + ' حقل فارغ، يرجى تعبئة جميع الأسماء'); }
+
+  var isIdhaa = (center === 'إرسال إذاعة الخمرة');
+  var rows = [];
+
+  if (isIdhaa) {
+    var mainPtr = 0; var n = names.length;
+    for (var day = 0; day < 14; day++) {
+      var date = addH(dd,dm,dy,day); var dow = getDOW(date.d,date.m,date.y);
+      var shifts = [];
+      for (var s = 0; s < 3; s++) {
+        var m1=names[mainPtr%n], m2=names[(mainPtr+1)%n];
+        var sp=mainPtr+2, s1=names[sp%n], s2=names[(sp+1)%n];
+        shifts.push({main:[m1,m2],sup:[s1,s2]});
+        mainPtr+=2;
+      }
+      rows.push({date:date,dow:dow,shifts:shifts,is4:true});
+    }
+  } else {
+    var ptr = 0;
+    for (var day = 0; day < 14; day++) {
+      var date=addH(dd,dm,dy,day); var dow=getDOW(date.d,date.m,date.y);
+      var shifts=[];
+      for (var s=0;s<3;s++){
+        shifts.push([names[ptr%names.length],names[(ptr+1)%names.length]]);
+        ptr+=2;
+      }
+      rows.push({date:date,dow:dow,shifts:shifts,is4:false});
+    }
+  }
+
+  var endDate = addH(dd,dm,dy,13);
+
+  document.getElementById('date-range-badge').innerHTML =
+    '<strong>من:</strong> '+fmtL(dd,dm,dy)+'&nbsp;&nbsp;<strong>إلى:</strong> '+fmtL(endDate.d,endDate.m,endDate.y);
+  document.getElementById('doc-print-title-text').textContent = 'كشف الخفارات — مركز '+center;
+  document.getElementById('doc-print-sub').textContent =
+    'من '+fmtL(dd,dm,dy)+' إلى '+fmtL(endDate.d,endDate.m,endDate.y)+' | الفوج الثالث بالحرس الوطني';
+  document.getElementById('doc-title').textContent = 'كشف الخفارات — مركز '+center;
+  document.getElementById('doc-sub').textContent   = 'من '+fmtL(dd,dm,dy)+' لمدة 14 يوماً';
+  document.getElementById('doc-meta').innerHTML    =
+    '<strong>من:</strong> '+fmtS(dd,dm,dy)+'&nbsp;|&nbsp;<strong>إلى:</strong> '+fmtS(endDate.d,endDate.m,endDate.y);
+  document.getElementById('doc-arif').textContent  = arif;
+  document.getElementById('doc-rank').textContent  = 'الرتبة: '+rank;
+
+  /* Table head */
+  var thead=document.getElementById('doc-head'); thead.innerHTML='';
+  var hr=document.createElement('tr');
+  var thLabels=[
+    ['اليوم','التاريخ',HEAD_DAY,'78px'],
+    ['الخفارة الأولى','6ص — 2م',HEAD_SH,null],
+    ['الخفارة الثانية','2م — 10م',HEAD_SH,null],
+    ['الخفارة الثالثة','10م — 6ص',HEAD_SH,null]
+  ];
+  for (var ti=0;ti<thLabels.length;ti++) {
+    var th=document.createElement('th');
+    th.style.backgroundColor=thLabels[ti][2]; th.style.color='#000';
+    th.style.webkitPrintColorAdjust='exact'; th.style.printColorAdjust='exact';
+    if(thLabels[ti][3]){th.style.width=thLabels[ti][3];}
+    th.innerHTML=thLabels[ti][0]+'<small>'+thLabels[ti][1]+'</small>';
+    hr.appendChild(th);
+  }
+  thead.appendChild(hr);
+
+  /* Table body */
+  var tbody=document.getElementById('doc-body'); tbody.innerHTML='';
+  for (var ri=0;ri<rows.length;ri++) {
+    var row=rows[ri]; var isOdd=(ri%2===0);
+    var dayBg=isOdd?ODD_DAY:EVEN_DAY; var shBg=isOdd?ODD_SHIFT:EVEN_SHIFT;
+    var tr=document.createElement('tr');
+
+    var tdDay=document.createElement('td');
+    tdDay.className='day-cell';
+    tdDay.style.backgroundColor=dayBg;
+    tdDay.style.webkitPrintColorAdjust='exact'; tdDay.style.printColorAdjust='exact';
+    tdDay.style.padding='4px 4px';
+    tdDay.innerHTML='<div class="day-name">'+WEEKDAYS[row.dow]+'</div><div class="day-date">'+fmtS(row.date.d,row.date.m,row.date.y)+'</div>';
+    tr.appendChild(tdDay);
+
+    for (var si=0;si<row.shifts.length;si++) {
+      var tdSh=document.createElement('td');
+      tdSh.className='shift-td';
+      tdSh.style.backgroundColor=shBg;
+      tdSh.style.webkitPrintColorAdjust='exact'; tdSh.style.printColorAdjust='exact';
+      if (row.is4) {
+        tdSh.style.padding='2px 3px';
+        var sh=row.shifts[si];
+        tdSh.innerHTML=
+          '<div class="names-cell-4">'+
+            '<div class="shift-group">'+
+              '<div class="shift-group-lbl">خفراء</div>'+
+              '<div class="shift-names">'+
+                '<div class="name-tag-4">'+sh.main[0]+'</div>'+
+                '<div class="name-tag-4">'+sh.main[1]+'</div>'+
+              '</div>'+
+            '</div>'+
+            '<div class="shift-group support">'+
+              '<div class="shift-group-lbl">مساند</div>'+
+              '<div class="shift-names">'+
+                '<div class="name-tag-4">'+sh.sup[0]+'</div>'+
+                '<div class="name-tag-4">'+sh.sup[1]+'</div>'+
+              '</div>'+
+            '</div>'+
+          '</div>';
+      } else {
+        tdSh.style.padding='3px 4px';
+        var n1=row.shifts[si][0]; var n2=row.shifts[si][1];
+        tdSh.innerHTML='<div class="names-cell"><div class="name-tag">'+n1+'</div><div class="name-tag">'+n2+'</div></div>';
+      }
+      tr.appendChild(tdSh);
+    }
+    tbody.appendChild(tr);
+  }
+
+  /* Save for inventory use */
+  window._generatedRows   = rows;
+  window._generatedCenter = center;
+  window._generatedArif   = arif;
+  window._generatedRank   = rank;
+
+  var ps=document.getElementById('preview-section');
+  ps.style.display='block';
+  setTimeout(function(){ps.scrollIntoView({behavior:'smooth',block:'start'});},100);
+}
+
+function printSchedule() {
+  /* preview-section is already visible (style.display='block' set by generate())
+     We just need to ensure form and inventory are hidden in print */
+  window.print();
+}
+
+function downloadInventory(shareMode, shareCallback) {
+  if (!window._generatedRows || !window._generatedCenter) {
+    if (!shareMode) alert('يرجى توليد كشف الخفارات أولاً');
+    return;
+  }
+
+  var rows   = window._generatedRows;
+  var center = window._generatedCenter;
+  var arif   = window._generatedArif;
+  var rank   = window._generatedRank;
+  var is4    = (center === 'إرسال إذاعة الخمرة');
+
+  var shiftTimes = ['الساعة السادسة صباحاً (6ص)', 'الساعة الثانية ظهراً (2م)', 'الساعة العاشرة مساءً (10م)'];
+  var shiftNums  = ['الأولى', 'الثانية', 'الثالثة'];
+  var ASSETS = '' +
+    '<div class="ai"><span class="cb">&#9744;</span> عدد أربع أسلحة</div>' +
+    '<div class="ai"><span class="cb">&#9744;</span> عدد ثمان مخازن</div>' +
+    '<div class="ai"><span class="cb">&#9744;</span> عدد ذخيرة 80</div>' +
+    '<div class="ai"><span class="cb">&#9744;</span> واحد جهاز لاسلكي</div>' +
+    '<div class="ai"><span class="cb">&#9744;</span> واحد سترة واقية</div>';
+
+  function names(shift, i4) {
+    if (!shift) return ['السرية السابقة', ''];
+    if (i4) return [
+      shift.main[0] + ' / ' + shift.main[1],
+      shift.sup[0]  + ' / ' + shift.sup[1]
+    ];
+    return [shift[0], shift[1]];
+  }
+
+  /* Build pages HTML */
+  var pagesHtml = '';
+  for (var day = 0; day < rows.length; day++) {
+    var row     = rows[day];
+    var dateStr = fmtS(row.date.d, row.date.m, row.date.y);
+    var dayName = WEEKDAYS[row.dow];
+    var isLast  = (day === rows.length - 1);
+
+    var tablesHtml = '';
+    for (var s = 0; s < 3; s++) {
+      var receiver = row.shifts[s];
+      var deliverer;
+      if (s === 0) {
+        deliverer = (day === 0) ? null : rows[day - 1].shifts[2];
+      } else {
+        deliverer = row.shifts[s - 1];
+      }
+
+      var recNames = names(receiver, is4);
+      var delNames = names(deliverer, is4);
+
+      /* بناء صفوف الأسماء — كل اسم في خانة مستقلة */
+      var nameRows = is4 ? 4 : 2;
+      var allDelNames = is4
+        ? [delNames[0].split(' / ')[0]||'', delNames[0].split(' / ')[1]||'', delNames[1].split(' / ')[0]||'', delNames[1].split(' / ')[1]||'']
+        : [delNames[0]||'', delNames[1]||''];
+      var allRecNames = is4
+        ? [recNames[0].split(' / ')[0]||'', recNames[0].split(' / ')[1]||'', recNames[1].split(' / ')[0]||'', recNames[1].split(' / ')[1]||'']
+        : [recNames[0]||'', recNames[1]||''];
+
+      /* إذا اليوم الأول خفارة الأولى: المسلم = السرية السابقة في الصف الأول فقط */
+      if (!deliverer) {
+        allDelNames = is4 ? ['السرية السابقة','','',''] : ['السرية السابقة',''];
+      }
+
+      var bodyRows = '';
+      for (var ri = 0; ri < nameRows; ri++) {
+        var cellStyle = 'height:26px;min-height:26px;';
+        if (ri === 0) {
+          bodyRows +=
+            '<tr>' +
+              '<td class="nc" style="' + cellStyle + '">' + (allDelNames[ri]||'') + '</td>' +
+              '<td class="sc" style="' + cellStyle + '"></td>' +
+              '<td class="nc" style="' + cellStyle + '">' + (allRecNames[ri]||'') + '</td>' +
+              '<td class="sc" style="' + cellStyle + '"></td>' +
+              '<td class="ac" rowspan="' + nameRows + '">' + ASSETS + '</td>' +
+            '</tr>';
+        } else {
+          bodyRows +=
+            '<tr>' +
+              '<td class="nc" style="' + cellStyle + '">' + (allDelNames[ri]||'') + '</td>' +
+              '<td class="sc" style="' + cellStyle + '"></td>' +
+              '<td class="nc" style="' + cellStyle + '">' + (allRecNames[ri]||'') + '</td>' +
+              '<td class="sc" style="' + cellStyle + '"></td>' +
+            '</tr>';
+        }
+      }
+
+      tablesHtml +=
+        '<div class="sb">' +
+          '<div class="st">الخفارة ' + shiftNums[s] + ' &mdash; ' + shiftTimes[s] + '</div>' +
+          '<table>' +
+            '<tr>' +
+              '<th style="width:27%">الخفير المسلِم</th>' +
+              '<th style="width:11%">التوقيع</th>' +
+              '<th style="width:27%">الخفير المستلِم</th>' +
+              '<th style="width:11%">التوقيع</th>' +
+              '<th>العهدة المستلَمة</th>' +
+            '</tr>' +
+            bodyRows +
+            '<tr class="nr"><td colspan="5">ملاحظات:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td></tr>' +
+          '</table>' +
+        '</div>';
+    }
+
+    /* Footer — جدول تصديق النائب المستلم */
+    var footerSign =
+      '<table style="width:100%;border-collapse:collapse;margin-top:8px;font-size:9pt;direction:rtl;">' +
+        '<tr>' +
+          '<td style="width:50%;vertical-align:top;padding-left:10px;">' +
+            '<div style="font-weight:700;margin-bottom:4px;font-size:9pt;">تصديق النائب المستلم</div>' +
+            '<table style="border-collapse:collapse;width:100%;">' +
+              '<tr>' +
+                '<th style="border:1px solid #000;padding:4px 8px;background:#e8f0de;width:40%;-webkit-print-color-adjust:exact;print-color-adjust:exact;">الاسم</th>' +
+                '<th style="border:1px solid #000;padding:4px 8px;background:#e8f0de;width:25%;-webkit-print-color-adjust:exact;print-color-adjust:exact;">الرتبة</th>' +
+                '<th style="border:1px solid #000;padding:4px 8px;background:#e8f0de;-webkit-print-color-adjust:exact;print-color-adjust:exact;">التوقيع</th>' +
+              '</tr>' +
+              '<tr style="height:30px;">' +
+                '<td style="border:1px solid #000;padding:4px 8px;text-align:right;">' + arif + '</td>' +
+                '<td style="border:1px solid #000;padding:4px 8px;text-align:center;">' + rank + '</td>' +
+                '<td style="border:1px solid #000;padding:4px 8px;"></td>' +
+              '</tr>' +
+            '</table>' +
+          '</td>' +
+        '</tr>' +
+      '</table>';
+
+    pagesHtml +=
+      '<div class="page" style="page-break-after:' + (isLast ? 'avoid' : 'always') + '">' +
+        '<div class="min">وزارة الحرس الوطني</div>' +
+        '<div class="ttl">نموذج الجرد اليومي للخفارات</div>' +
+        '<div class="sub">الجرد الخاص بموقع <strong>' + center + '</strong> &nbsp;|&nbsp; يوم <strong>' + dayName + '</strong> &nbsp;|&nbsp; التاريخ <strong>' + dateStr + ' هـ</strong></div>' +
+        tablesHtml +
+        '<div class="fn">' +
+          '<p>• على كل خفير يجب التأكد من سلامة العهدة قبل انتهاء الخفارة وإبلاغ الرقيب عن أي ملاحظات.</p>' +
+          '<p>• على كل خفير المحافظة على نظافة الموقع والتأكد من ذلك أثناء الاستلام والتسليم.</p>' +
+        '</div>' +
+        footerSign +
+      '</div>';
+  }
+
+  /* Full standalone HTML file */
+  var html = '<!DOCTYPE html><html lang="ar" dir="rtl"><head>' +
+    '<meta charset="UTF-8">' +
+    '<meta name="viewport" content="width=device-width,initial-scale=1">' +
+    '<title>نماذج الجرد — ' + center + '</title>' +
+    '<style>' +
+    '@import url("https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap");' +
+    '@page{size:A4 portrait;margin:0;}' +
+    'body{font-family:"Cairo","Segoe UI",Tahoma,Arial,sans-serif;direction:rtl;background:#fff;color-scheme:light;padding:0;margin:0;}' +
+    '.page{padding:8mm 10mm;box-sizing:border-box;}' +
+    '.min{text-align:center;font-size:9pt;color:#555;margin-bottom:2px;}' +
+    '.ttl{text-align:center;font-size:14pt;font-weight:900;margin-bottom:3px;}' +
+    '.sub{text-align:center;font-size:9.5pt;color:#333;margin-bottom:8px;line-height:1.8;}' +
+    '.sb{margin-bottom:8px;}' +
+    '.st{background:#3d4d26;color:#fff;font-size:9.5pt;font-weight:700;padding:4px 10px;text-align:center;-webkit-print-color-adjust:exact;print-color-adjust:exact;}' +
+    'table{width:100%;border-collapse:collapse;font-size:9pt;direction:rtl;}' +
+    'th,td{border:1px solid #000;padding:4px 6px;text-align:center;vertical-align:middle;}' +
+    'th{background:#e8f0de;font-weight:700;-webkit-print-color-adjust:exact;print-color-adjust:exact;}' +
+    '.nc{text-align:right;line-height:1.9;}' +
+    '.ac{text-align:right;font-size:8.5pt;line-height:1.7;padding:4px 6px;}' +
+    '.ai{display:flex;align-items:center;gap:5px;margin:2px 0;font-size:8.5pt;}' +
+    '.cb{display:inline-block;width:11px;height:11px;border:1.5px solid #000;flex-shrink:0;-webkit-print-color-adjust:exact;print-color-adjust:exact;}' +
+    '.sc{width:55px;color:#ccc;}' +
+    '.nr td{text-align:right;font-size:8pt;color:#666;}' +
+    '.fn{margin-top:7px;border:1px solid #ccc;border-radius:4px;padding:6px 10px;background:#fafafa;font-size:8pt;color:#444;line-height:1.9;-webkit-print-color-adjust:exact;print-color-adjust:exact;}' +
+    '.fn p{margin:0;}' +
+    '.sg{margin-top:10px;display:flex;flex-direction:column;align-items:flex-start;}' +
+    '.sg-lbl{font-size:8.5pt;font-weight:700;margin-bottom:4px;color:#333;}' +
+    '.sig-tbl{width:auto;min-width:280px;border-collapse:collapse;font-size:9pt;direction:rtl;}' +
+    '.sig-tbl th,.sig-tbl td{border:1px solid #000;padding:5px 10px;text-align:center;vertical-align:middle;}' +
+    '.sig-tbl th{background:#e8f0de;font-weight:700;-webkit-print-color-adjust:exact;print-color-adjust:exact;}' +
+    '.sig-tbl td:last-child{min-width:100px;height:30px;}' +
+    '@media print{' +
+      'body{padding:0!important;}' +
+      '.st{background:#3d4d26!important;color:#fff!important;}' +
+      'th{background:#e8f0de!important;}' +
+      '.fn{background:#fafafa!important;}' +
+    '}' +
+    '</style></head><body>' +
+    pagesHtml +
+    '<script>window.onload=function(){window.print();}<\/script>' +
+    '</body></html>';
+
+  /* إذا وضع callback (وضع المشاركة) */
+  if (shareMode && typeof shareCallback === 'function') {
+    shareCallback(html);
+    return;
+  }
+
+  /* تحميل الملف مباشرة — يعمل على أندرويد وكل المتصفحات */
+  var blob = new Blob([html], {type: 'text/html;charset=utf-8'});
+  var url  = URL.createObjectURL(blob);
+  var a    = document.createElement('a');
+  a.href     = url;
+  a.target   = '_blank';
+  a.download = 'جرد_' + center + '_' + fmtS(rows[0].date.d, rows[0].date.m, rows[0].date.y) + '.html';
+  a.style.display = 'none';
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(function(){
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }, 2000);
+}
+
+var ASSETS_TEXT = 'عدد أربع أسلحة\nعدد ثمان مخازن\nعدد ذخيرة 80\nواحد جهاز لاسلكي\nواحد سترة واقية';
+
+function namesHtml(shift, is4) {
+  if (!shift) return '—';
+  if (is4) {
+    return shift.main[0] + ' / ' + shift.main[1] + '<br>' + shift.sup[0] + ' / ' + shift.sup[1];
+  }
+  return shift[0] + '<br>' + shift[1];
+}
+
+
+function generateInventoryPages(rows, center, arif, rank, customContainer) {
+  var container = customContainer || document.getElementById('inventory-print-section');
+  container.innerHTML = '';
+  var is4 = (center === 'إرسال إذاعة الخمرة');
+
+  var shiftTimes = ['الساعة السادسة صباحاً (6ص)', 'الساعة الثانية ظهراً (2م)', 'الساعة العاشرة مساءً (10م)'];
+  var shiftNums  = ['الأولى', 'الثانية', 'الثالثة'];
+
+  function inventoryAssetsHtml() {
+    var assets = [
+      'عدد أربع أسلحة',
+      'عدد ثمان مخازن',
+      'عدد ذخيرة 80',
+      'واحد جهاز لاسلكي',
+      'واحد سترة واقية'
+    ];
+    return assets.map(function(item) {
+      return '<div class="asset-item"><span class="asset-box">☐</span><span class="asset-text">' + item + '</span></div>';
+    }).join('');
+  }
+
+  function splitShiftNames(shift, supportMode) {
+    if (!shift) {
+      return supportMode ? ['السرية السابقة', '', '', ''] : ['السرية السابقة', ''];
+    }
+    if (supportMode) {
+      return [
+        (shift.main && shift.main[0]) || '',
+        (shift.main && shift.main[1]) || '',
+        (shift.sup && shift.sup[0]) || '',
+        (shift.sup && shift.sup[1]) || ''
+      ];
+    }
+    return [
+      (shift[0]) || '',
+      (shift[1]) || ''
+    ];
+  }
+
+  function buildNameRows(deliverer, receiver, supportMode, isFirstDelivererPrevious) {
+    var rowCount = supportMode ? 4 : 2;
+    var allDelNames = splitShiftNames(deliverer, supportMode);
+    var allRecNames = splitShiftNames(receiver, supportMode);
+
+    if (isFirstDelivererPrevious) {
+      allDelNames = supportMode ? ['السرية السابقة', '', '', ''] : ['السرية السابقة', ''];
+    }
+
+    var rowsHtml = '';
+    for (var ri = 0; ri < rowCount; ri++) {
+      if (ri === 0) {
+        rowsHtml +=
+          '<tr class="name-data-row">' +
+            '<td class="names-col name-cell-fixed">' + (allDelNames[ri] || '') + '</td>' +
+            '<td class="sign-col sign-cell-fixed"></td>' +
+            '<td class="names-col name-cell-fixed">' + (allRecNames[ri] || '') + '</td>' +
+            '<td class="sign-col sign-cell-fixed"></td>' +
+            '<td class="assets-col assets-cell-fixed" rowspan="' + rowCount + '">' + inventoryAssetsHtml() + '</td>' +
+          '</tr>';
+      } else {
+        rowsHtml +=
+          '<tr class="name-data-row">' +
+            '<td class="names-col name-cell-fixed">' + (allDelNames[ri] || '') + '</td>' +
+            '<td class="sign-col sign-cell-fixed"></td>' +
+            '<td class="names-col name-cell-fixed">' + (allRecNames[ri] || '') + '</td>' +
+            '<td class="sign-col sign-cell-fixed"></td>' +
+          '</tr>';
+      }
+    }
+    return rowsHtml;
+  }
+
+  function deputyApprovalTable() {
+    return (
+      '<div class="inv-approval-wrap">' +
+        '<div class="inv-approval-title">تصديق النائب المستلم</div>' +
+        '<table class="inv-approval-table">' +
+          '<tr>' +
+            '<th>الاسم</th>' +
+            '<th>الرتبة</th>' +
+            '<th>التوقيع</th>' +
+          '</tr>' +
+          '<tr>' +
+            '<td>' + arif + '</td>' +
+            '<td>' + rank + '</td>' +
+            '<td></td>' +
+          '</tr>' +
+        '</table>' +
+      '</div>'
+    );
+  }
+
+  for (var day = 0; day < rows.length; day++) {
+    var row = rows[day];
+    var dateStr = fmtS(row.date.d, row.date.m, row.date.y);
+    var dayName = WEEKDAYS[row.dow];
+
+    var pageDiv = document.createElement('div');
+    pageDiv.className = 'inv-page';
+
+    pageDiv.innerHTML =
+      '<div class="inv-ministry">وزارة الحرس الوطني</div>' +
+      '<div class="inv-title">نموذج الجرد اليومي للخفارات</div>' +
+      '<div class="inv-subtitle">' +
+        'الجرد الخاص بموقع <strong>' + center + '</strong>' +
+        ' &nbsp;|&nbsp; يوم <strong>' + dayName + '</strong>' +
+        ' &nbsp;|&nbsp; التاريخ <strong>' + dateStr + ' هـ</strong>' +
+      '</div>';
+
+    for (var s = 0; s < 3; s++) {
+      var receiver = row.shifts[s];
+      var deliverer = null;
+
+      if (s === 0) {
+        deliverer = (day === 0) ? null : rows[day - 1].shifts[2];
+      } else {
+        deliverer = row.shifts[s - 1];
+      }
+
+      var isFirstDelivererPrevious = (s === 0 && day === 0);
+      var bodyRows = buildNameRows(deliverer, receiver, is4, isFirstDelivererPrevious);
+
+      var shiftBlock = document.createElement('div');
+      shiftBlock.className = 'inv-shift-block';
+      shiftBlock.innerHTML =
+        '<div class="inv-shift-title">الخفارة ' + shiftNums[s] + ' — ' + shiftTimes[s] + '</div>' +
+        '<table class="inv-tbl">' +
+          '<tr>' +
+            '<th style="width:28%">الخفير المسلِم</th>' +
+            '<th style="width:12%">التوقيع</th>' +
+            '<th style="width:28%">الخفير المستلِم</th>' +
+            '<th style="width:12%">التوقيع</th>' +
+            '<th>العهدة المستلَمة</th>' +
+          '</tr>' +
+          bodyRows +
+          '<tr class="notes-row">' +
+            '<td colspan="5">ملاحظات:</td>' +
+          '</tr>' +
+        '</table>';
+
+      pageDiv.appendChild(shiftBlock);
+    }
+
+    var footerDiv = document.createElement('div');
+    footerDiv.className = 'inv-footer-notes';
+    footerDiv.innerHTML =
+      '<p>• على كل خفير يجب التأكد من سلامة العهدة قبل انتهاء الخفارة وإبلاغ الرقيب عن أي ملاحظات.</p>' +
+      '<p>• على كل خفير المحافظة على نظافة الموقع والتأكد من ذلك أثناء الاستلام والتسليم.</p>';
+    pageDiv.appendChild(footerDiv);
+
+    var approvalWrap = document.createElement('div');
+    approvalWrap.innerHTML = deputyApprovalTable();
+    pageDiv.appendChild(approvalWrap.firstChild);
+
+    container.appendChild(pageDiv);
+  }
+}
+
+
+/* ---- إعدادات PDF المشتركة ---- */
+var PDF_OPT = {
+  margin: [0, 0, 0, 0],
+  image: { type: 'jpeg', quality: 0.98 },
+  html2canvas: { scale: 2, useCORS: true, logging: false, backgroundColor: '#ffffff' },
+  jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+};
+
+function showLoading(msg) {
+  var el = document.getElementById('share-loading');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'share-loading';
+    el.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);' +
+      'display:flex;align-items:center;justify-content:center;z-index:9999;font-family:Cairo,sans-serif;';
+    el.innerHTML = '<div style="background:#fff;border-radius:12px;padding:24px 32px;text-align:center;' +
+      'font-size:1rem;color:#3d4d26;font-weight:700;">' +
+      '<div style="margin-bottom:8px;font-size:1.4rem;">⏳</div>' +
+      '<div id="share-loading-msg">' + msg + '</div></div>';
+    document.body.appendChild(el);
+  } else {
+    document.getElementById('share-loading-msg').textContent = msg;
+    el.style.display = 'flex';
+  }
+}
+function hideLoading() {
+  var el = document.getElementById('share-loading');
+  if (el) el.style.display = 'none';
+}
+
+function ensurePdfLib() {
+  return (typeof html2canvas !== 'undefined') && (
+    (typeof window.jspdf !== 'undefined' && typeof window.jspdf.jsPDF !== 'undefined') ||
+    (typeof jsPDF !== 'undefined')
+  );
+}
+
+function getJsPdfCtor() {
+  if (typeof window.jspdf !== 'undefined' && typeof window.jspdf.jsPDF !== 'undefined') return window.jspdf.jsPDF;
+  if (typeof jsPDF !== 'undefined') return jsPDF;
+  return null;
+}
+
+function waitForFonts() {
+  if (document.fonts && document.fonts.ready) return document.fonts.ready.catch(function(){});
+  return Promise.resolve();
+}
+
+function buildSchedulePdfNode() {
+  var title = document.getElementById('doc-print-title-text').textContent;
+  var sub   = document.getElementById('doc-print-sub').textContent;
+  var tbl   = document.querySelector('table.doc');
+  var ftr   = document.querySelector('.doc-footer');
+
+  var wrap = document.createElement('div');
+  wrap.dir = 'rtl';
+  wrap.className = 'pdf-capture-root schedule-pdf-root';
+  wrap.style.cssText = 'width:190mm;background:#fff;color:#000;padding:8mm 10mm;margin:0 auto;font-family:Cairo,Tahoma,Arial,sans-serif;box-sizing:border-box;';
+  wrap.innerHTML =
+    '<div class="pdf-sch">' +
+      '<div class="pdf-sch-title">' + title + '</div>' +
+      '<div class="pdf-sch-sub">' + sub + '</div>' +
+      (tbl ? tbl.outerHTML : '') +
+      (ftr ? ftr.outerHTML : '') +
+    '</div>';
+
+  wrap._pdfStyleText =
+      '.schedule-pdf-root .pdf-sch-title{ text-align:center; font-size:14pt; font-weight:900; margin:0 0 4px 0; }' +
+      '.schedule-pdf-root .pdf-sch-sub{ text-align:center; font-size:9pt; color:#555; margin:0 0 10px 0; }' +
+      '.schedule-pdf-root table{ width:100%; border-collapse:collapse; font-size:8pt; direction:rtl; }' +
+      '.schedule-pdf-root th,.schedule-pdf-root td{ border:1px solid #000; padding:3px 5px; text-align:center; vertical-align:middle; }' +
+      '.schedule-pdf-root th{ background:#ebebeb; -webkit-print-color-adjust:exact; print-color-adjust:exact; }' +
+      '.schedule-pdf-root .day-cell{ background:#ebebeb; white-space:nowrap; -webkit-print-color-adjust:exact; print-color-adjust:exact; }' +
+      '.schedule-pdf-root .day-name{ font-weight:800; font-size:8.5pt; display:block; }' +
+      '.schedule-pdf-root .day-date{ font-size:7pt; color:#555; display:block; }' +
+      '.schedule-pdf-root .names-cell{ display:flex; flex-direction:column; gap:1px; }' +
+      '.schedule-pdf-root .name-tag{ font-size:8pt; font-weight:700; padding:1px 2px; }' +
+      '.schedule-pdf-root .names-cell-4{ display:flex; flex-direction:column; }' +
+      '.schedule-pdf-root .shift-group{ display:flex; align-items:stretch; padding:2px; }' +
+      '.schedule-pdf-root .shift-group.support{ border-top:1px solid #bbb; }' +
+      '.schedule-pdf-root .shift-group-lbl{ font-size:5pt; background:#e0e0e0; writing-mode:vertical-lr; -webkit-writing-mode:vertical-lr; transform:rotate(180deg); padding:2px 1px; min-width:9px; display:flex; align-items:center; justify-content:center; -webkit-print-color-adjust:exact; print-color-adjust:exact; }' +
+      '.schedule-pdf-root .shift-names{ display:flex; flex-direction:column; flex:1; padding:1px 2px; }' +
+      '.schedule-pdf-root .name-tag-4{ font-size:7pt; font-weight:700; text-align:center; }' +
+      '.schedule-pdf-root .doc-footer{ border-top:2px solid #000; padding:8px 0; display:flex; justify-content:flex-end; margin-top:8px; }' +
+      '.schedule-pdf-root .footer-sig .lbl{ font-size:7pt; color:#888; font-weight:600; }' +
+      '.schedule-pdf-root .footer-sig .val{ font-size:7.5pt; font-weight:700; color:#000; }' +
+      '.schedule-pdf-root .footer-sig .rnk{ font-size:7pt; color:#000; }';
+
+  return wrap;
+}
+
+function buildInventoryPdfNode() {
+  if (!window._generatedRows || !window._generatedCenter) return null;
+
+  var wrap = document.createElement('div');
+  wrap.dir = 'rtl';
+  wrap.className = 'pdf-capture-root inventory-pdf-root';
+  wrap.style.cssText = 'width:210mm;background:#fff;color:#000;padding:0;margin:0 auto;font-family:Cairo,Tahoma,Arial,sans-serif;box-sizing:border-box;';
+
+  wrap._pdfStyleText =
+      '.inventory-pdf-root .inv-page{ padding:8mm 10mm; box-sizing:border-box; background:#fff; width:210mm; min-height:297mm; }' +
+      '.inventory-pdf-root .inv-ministry{ text-align:center; font-size:9pt; color:#555; margin-bottom:2px; }' +
+      '.inventory-pdf-root .inv-title{ text-align:center; font-size:13pt; font-weight:900; color:#000; margin-bottom:3px; }' +
+      '.inventory-pdf-root .inv-subtitle{ text-align:center; font-size:9.5pt; color:#333; margin-bottom:8px; line-height:1.8; }' +
+      '.inventory-pdf-root .inv-subtitle strong{ color:#000; }' +
+      '.inventory-pdf-root .inv-shift-block{ margin-bottom:8px; }' +
+      '.inventory-pdf-root .inv-shift-title{ background:#3d4d26; color:#fff; font-size:9.5pt; font-weight:700; padding:4px 10px; text-align:center; -webkit-print-color-adjust:exact; print-color-adjust:exact; }' +
+      '.inventory-pdf-root table.inv-tbl{ width:100%; border-collapse:collapse; font-size:9pt; direction:rtl; table-layout:fixed; }' +
+      '.inventory-pdf-root table.inv-tbl th, .inventory-pdf-root table.inv-tbl td{ border:1px solid #000; padding:4px 6px; text-align:center; vertical-align:middle; }' +
+      '.inventory-pdf-root table.inv-tbl th{ background:#e8f0de; font-weight:700; -webkit-print-color-adjust:exact; print-color-adjust:exact; }' +
+      '.inventory-pdf-root table.inv-tbl td.names-col{ text-align:right; line-height:1.55; white-space:nowrap; overflow:hidden; }' +
+      '.inventory-pdf-root table.inv-tbl td.assets-col{ text-align:right; font-size:8.5pt; line-height:1.35; padding:4px 6px; }' +
+      '.inventory-pdf-root table.inv-tbl td.sign-col{ width:55px; font-size:8pt; color:#bbb; }' +
+      '.inventory-pdf-root table.inv-tbl tr.notes-row td{ text-align:right; font-size:8pt; color:#666; height:24px; }' +
+      '.inventory-pdf-root .name-cell-fixed{ height:26px; min-height:26px; max-height:26px; }' +
+      '.inventory-pdf-root .sign-cell-fixed{ height:26px; min-height:26px; max-height:26px; }' +
+      '.inventory-pdf-root .assets-cell-fixed{ vertical-align:top; }' +
+      '.inventory-pdf-root .asset-item{ display:flex; align-items:center; gap:6px; margin:2px 0; white-space:nowrap; }' +
+      '.inventory-pdf-root .asset-box{ display:inline-flex; align-items:center; justify-content:center; width:12px; min-width:12px; font-size:10pt; line-height:1; }' +
+      '.inventory-pdf-root .asset-text{ display:inline-block; line-height:1.35; }' +
+      '.inventory-pdf-root .inv-footer-notes{ margin-top:7px; border:1px solid #ccc; border-radius:4px; padding:6px 10px; background:#fafafa; font-size:8pt; color:#444; line-height:1.9; -webkit-print-color-adjust:exact; print-color-adjust:exact; }' +
+      '.inventory-pdf-root .inv-approval-wrap{ width:54%; margin-top:8px; }' +
+      '.inventory-pdf-root .inv-approval-title{ font-size:8.8pt; font-weight:700; margin-bottom:4px; text-align:right; }' +
+      '.inventory-pdf-root .inv-approval-table{ width:100%; border-collapse:collapse; font-size:8.8pt; table-layout:fixed; }' +
+      '.inventory-pdf-root .inv-approval-table th, .inventory-pdf-root .inv-approval-table td{ border:1px solid #000; padding:5px 8px; text-align:center; vertical-align:middle; }' +
+      '.inventory-pdf-root .inv-approval-table th{ background:#e8f0de; -webkit-print-color-adjust:exact; print-color-adjust:exact; }' +
+      '.inventory-pdf-root .inv-approval-table td:first-child{ text-align:right; }' +
+      '.inventory-pdf-root .inv-approval-table tr:last-child td{ height:30px; }';
+
+  generateInventoryPages(
+    window._generatedRows,
+    window._generatedCenter,
+    window._generatedArif,
+    window._generatedRank,
+    wrap
+  );
+
+  return wrap;
+}
+
+function withPdfContainer(node, callback) {
+  var holder = document.createElement('div');
+  holder.style.cssText = 'position:fixed;left:-100000px;top:0;width:210mm;background:#fff;opacity:1;pointer-events:none;z-index:-1;overflow:visible;';
+  var styleEl = null;
+
+  if (node && node._pdfStyleText) {
+    styleEl = document.createElement('style');
+    styleEl.textContent = node._pdfStyleText;
+    document.head.appendChild(styleEl);
+  }
+
+  document.body.appendChild(holder);
+  holder.appendChild(node);
+
+  var done = function() {
+    setTimeout(function() {
+      if (holder && holder.parentNode) holder.parentNode.removeChild(holder);
+      if (styleEl && styleEl.parentNode) styleEl.parentNode.removeChild(styleEl);
+    }, 100);
+  };
+
+  waitForFonts().then(function() {
+    requestAnimationFrame(function() {
+      requestAnimationFrame(function() {
+        callback(holder, done);
+      });
+    });
+  });
+}
+
+function pdfFilename(prefix) {
+  var center = window._generatedCenter || 'المركز';
+  var start = window._generatedRows && window._generatedRows[0] ? fmtS(window._generatedRows[0].date.d, window._generatedRows[0].date.m, window._generatedRows[0].date.y) : '';
+  return prefix + '_' + center + (start ? '_' + start : '') + '.pdf';
+}
+
+function makePdfFromCanvases(canvases) {
+  var JsPdfCtor = getJsPdfCtor();
+  var pdf = new JsPdfCtor({ unit: 'mm', format: 'a4', orientation: 'portrait' });
+  var pageW = 210, pageH = 297;
+
+  canvases.forEach(function(canvas, idx) {
+    if (idx > 0) pdf.addPage();
+    var imgData = canvas.toDataURL('image/jpeg', 0.98);
+    var imgW = pageW;
+    var imgH = canvas.height * imgW / canvas.width;
+    if (imgH > pageH) {
+      imgH = pageH;
+      imgW = canvas.width * imgH / canvas.height;
+    }
+    var x = (pageW - imgW) / 2;
+    var y = 0;
+    pdf.addImage(imgData, 'JPEG', x, y, imgW, imgH, undefined, 'FAST');
+  });
+
+  return pdf;
+}
+
+function renderNodeToCanvas(node, scale) {
+  return html2canvas(node, {
+    scale: scale || 2,
+    useCORS: true,
+    logging: false,
+    backgroundColor: '#ffffff',
+    windowWidth: Math.ceil(node.scrollWidth),
+    windowHeight: Math.ceil(node.scrollHeight),
+    scrollX: 0,
+    scrollY: 0
+  });
+}
+
+function downloadSchedule() {
+  if (!window._generatedRows) { alert('يرجى توليد الكشف أولاً'); return; }
+  if (!ensurePdfLib()) { alert('مكتبة PDF لم يتم تحميلها. تأكد من الاتصال بالإنترنت ثم أعد المحاولة.'); return; }
+
+  showLoading('جاري تجهيز PDF كشف الخفارات...');
+  var node = buildSchedulePdfNode();
+  var filename = pdfFilename('كشف_الخفارات');
+
+  withPdfContainer(node, function(holder, done) {
+    renderNodeToCanvas(holder.firstChild, 2).then(function(canvas) {
+      var pdf = makePdfFromCanvases([canvas]);
+      pdf.save(filename);
+      hideLoading();
+      done();
+    }).catch(function(err) {
+      hideLoading(); done();
+      console.error(err);
+      alert('تعذر إنشاء PDF للكشف.');
+    });
+  });
+}
+
+function shareSchedule() {
+  if (!window._generatedRows) { alert('يرجى توليد الكشف أولاً'); return; }
+  if (!ensurePdfLib()) { alert('مكتبة PDF لم يتم تحميلها. تأكد من الاتصال بالإنترنت ثم أعد المحاولة.'); return; }
+
+  showLoading('جاري تجهيز ملف PDF للمشاركة...');
+  var node = buildSchedulePdfNode();
+  var filename = pdfFilename('كشف_الخفارات');
+  var title = document.getElementById('doc-print-title-text').textContent || 'كشف الخفارات';
+
+  withPdfContainer(node, function(holder, done) {
+    renderNodeToCanvas(holder.firstChild, 2).then(function(canvas) {
+      var pdf = makePdfFromCanvases([canvas]);
+      var pdfBlob = pdf.output('blob');
+      hideLoading();
+      done();
+      var file = new File([pdfBlob], filename, { type: 'application/pdf' });
+      if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+        navigator.share({ title: title, files: [file] }).catch(function(e){ if(e.name !== 'AbortError') console.log(e); });
+      } else {
+        var url = URL.createObjectURL(pdfBlob);
+        var a = document.createElement('a');
+        a.href = url; a.download = filename; a.style.display = 'none';
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        setTimeout(function(){ URL.revokeObjectURL(url); }, 2000);
+      }
+    }).catch(function(err) {
+      hideLoading(); done();
+      console.error(err);
+      alert('تعذر تجهيز PDF للمشاركة.');
+    });
+  });
+}
+
+function downloadInventory() {
+  if (!window._generatedRows || !window._generatedCenter) { alert('يرجى توليد الكشف أولاً'); return; }
+  if (!ensurePdfLib()) { alert('مكتبة PDF لم يتم تحميلها. تأكد من الاتصال بالإنترنت ثم أعد المحاولة.'); return; }
+
+  showLoading('جاري تجهيز PDF نماذج الجرد...');
+  var node = buildInventoryPdfNode();
+  var filename = pdfFilename('نماذج_الجرد');
+
+  withPdfContainer(node, function(holder, done) {
+    var pages = Array.prototype.slice.call(holder.firstChild.querySelectorAll('.inv-page'));
+    Promise.all(pages.map(function(page){ return renderNodeToCanvas(page, 2); }))
+      .then(function(canvases) {
+        var pdf = makePdfFromCanvases(canvases);
+        pdf.save(filename);
+        hideLoading();
+        done();
+      })
+      .catch(function(err) {
+        hideLoading(); done();
+        console.error(err);
+        alert('تعذر إنشاء PDF للجرد.');
+      });
+  });
+}
+
+function shareInventory() {
+  if (!window._generatedRows || !window._generatedCenter) { alert('يرجى توليد الكشف أولاً'); return; }
+  if (!ensurePdfLib()) { alert('مكتبة PDF لم يتم تحميلها. تأكد من الاتصال بالإنترنت ثم أعد المحاولة.'); return; }
+
+  showLoading('جاري تجهيز PDF الجرد للمشاركة...');
+  var node = buildInventoryPdfNode();
+  var filename = pdfFilename('نماذج_الجرد');
+  var shareTitle = 'نماذج جرد العهد — ' + window._generatedCenter;
+
+  withPdfContainer(node, function(holder, done) {
+    var pages = Array.prototype.slice.call(holder.firstChild.querySelectorAll('.inv-page'));
+    Promise.all(pages.map(function(page){ return renderNodeToCanvas(page, 2); }))
+      .then(function(canvases) {
+        var pdf = makePdfFromCanvases(canvases);
+        var pdfBlob = pdf.output('blob');
+        hideLoading();
+        done();
+        var file = new File([pdfBlob], filename, { type: 'application/pdf' });
+        if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+          navigator.share({ title: shareTitle, files: [file] }).catch(function(e){ if(e.name !== 'AbortError') console.log(e); });
+        } else {
+          var url = URL.createObjectURL(pdfBlob);
+          var a = document.createElement('a');
+          a.href = url; a.download = filename; a.style.display = 'none';
+          document.body.appendChild(a); a.click(); document.body.removeChild(a);
+          setTimeout(function(){ URL.revokeObjectURL(url); }, 2000);
+        }
+      })
+      .catch(function(err) {
+        hideLoading(); done();
+        console.error(err);
+        alert('تعذر تجهيز PDF الجرد للمشاركة.');
+      });
+  });
+}
+
+function backToForm() {
+  document.getElementById('preview-section').style.display = 'none';
+  document.body.classList.remove('print-mode-schedule');
+  document.body.classList.remove('print-mode-inventory');
+  window.scrollTo(0, 0);
+}
+function backToForm() {
+  document.getElementById('preview-section').style.display = 'none';
+  document.body.classList.remove('print-mode-schedule');
+  document.body.classList.remove('print-mode-inventory');
+  window.scrollTo(0, 0);
+}
+</script>
+</body>
+</html>
