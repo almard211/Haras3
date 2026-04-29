@@ -1,0 +1,1552 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" style="color-scheme:light;">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+<meta name="color-scheme" content="light only">
+<title>حاسبة مواعيد السرايا</title>
+<link rel="icon" type="image/png" href="icon.png">
+<link rel="apple-touch-icon" href="icon.png">
+
+<link rel="preload" href="fonts/Cairo-Regular.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/Cairo-Bold.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/Cairo-ExtraBold.woff2" as="font" type="font/woff2" crossorigin>
+
+<style>
+@font-face { font-family: 'Cairo'; src: url('fonts/Cairo-Regular.woff2') format('woff2'), url('fonts/Cairo-Regular.ttf') format('truetype'); font-weight: 400; font-display: block; }
+@font-face { font-family: 'Cairo'; src: url('fonts/Cairo-Medium.woff2') format('woff2'), url('fonts/Cairo-Medium.ttf') format('truetype'); font-weight: 500; font-display: block; }
+@font-face { font-family: 'Cairo'; src: url('fonts/Cairo-SemiBold.woff2') format('woff2'), url('fonts/Cairo-SemiBold.ttf') format('truetype'); font-weight: 600; font-display: block; }
+@font-face { font-family: 'Cairo'; src: url('fonts/Cairo-Bold.woff2') format('woff2'), url('fonts/Cairo-Bold.ttf') format('truetype'); font-weight: 700; font-display: block; }
+@font-face { font-family: 'Cairo'; src: url('fonts/Cairo-ExtraBold.woff2') format('woff2'), url('fonts/Cairo-ExtraBold.ttf') format('truetype'); font-weight: 800; font-display: block; }
+
+:root {
+  /* Same palette as main system */
+  --olive-1: #293D25;
+  --olive-2: #40513B;
+  --olive-3: #4E6147;
+  --olive-4: #527050;
+  --olive-5: #628141;
+  --gold-1: #B8813A;
+  --gold-2: #CC9148;
+  --gold-3: #DD9E59;
+  --beige: #E5D9B6;
+  --bg: #F5F2EC;
+  --white: #FFFFFF;
+  --text-d: #2C3B28;
+  --text-m: #445040;
+  --text-l: #6B7563;
+  --border: #D5CDB8;
+  --shadow-sm: 0 1px 3px rgba(64,81,59,.08);
+  --shadow-md: 0 4px 12px rgba(64,81,59,.12);
+  --shadow-lg: 0 8px 28px rgba(64,81,59,.18);
+  --r-sm: 8px;
+  --r-md: 14px;
+  --r-lg: 20px;
+  --r-xl: 28px;
+  --r-pill: 50px;
+  color-scheme: light only;
+}
+
+html { overflow-x: hidden; -webkit-overflow-scrolling: touch; }
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+button { -webkit-tap-highlight-color: transparent; outline: none; }
+button:focus { outline: none; }
+
+body {
+  font-family: 'Cairo', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text-m);
+  min-height: 100vh;
+  overflow-x: hidden;
+  width: 100%;
+  max-width: 100vw;
+  padding-bottom: 40px;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* === HEADER === */
+.app-header {
+  background: linear-gradient(160deg, #293D25 0%, #40513B 40%, #4E6147 75%, #527050 100%);
+  color: #fff;
+  padding: 28px 20px 36px;
+  text-align: center;
+  border-radius: 0 0 var(--r-xl) var(--r-xl);
+  box-shadow: var(--shadow-md);
+  position: relative;
+  overflow: hidden;
+}
+.app-header::before {
+  content: '';
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse at 20% 50%, rgba(120,170,90,.18) 0%, transparent 55%),
+    radial-gradient(ellipse at 80% 20%, rgba(78,97,71,.45) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 100%, rgba(41,61,37,.5) 0%, transparent 60%);
+  pointer-events: none;
+}
+.app-header h1 {
+  font-size: 1.5rem;
+  font-weight: 800;
+  margin-bottom: 6px;
+  letter-spacing: -0.5px;
+  position: relative;
+}
+.app-header p {
+  font-size: 0.85rem;
+  font-weight: 400;
+  opacity: 0.85;
+  position: relative;
+}
+.app-header .badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 14px;
+  padding: 6px 14px;
+  background: rgba(255,255,255,.1);
+  border: 1px solid rgba(255,255,255,.2);
+  border-radius: var(--r-pill);
+  font-size: 0.72rem;
+  font-weight: 500;
+  position: relative;
+  backdrop-filter: blur(8px);
+}
+.app-header .badge svg { width: 14px; height: 14px; }
+
+/* === CONTAINER === */
+.container {
+  max-width: 600px;
+  margin: -20px auto 0;
+  padding: 0 14px;
+  position: relative;
+}
+
+/* === CARDS === */
+.card {
+  background: var(--white);
+  border-radius: var(--r-xl);
+  padding: 22px 18px;
+  margin-bottom: 14px;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid rgba(213,205,184,.5);
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+  padding-bottom: 14px;
+  border-bottom: 1px dashed var(--border);
+}
+.card-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--olive-2), var(--olive-4));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  flex-shrink: 0;
+  box-shadow: var(--shadow-sm);
+}
+.card-icon svg { width: 22px; height: 22px; }
+.card-title { flex: 1; }
+.card-title h2 {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--text-d);
+  margin-bottom: 2px;
+}
+.card-title p {
+  font-size: 0.78rem;
+  color: var(--text-l);
+  font-weight: 400;
+}
+
+/* === FORM === */
+.form-group {
+  margin-bottom: 16px;
+}
+.form-label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-d);
+  margin-bottom: 8px;
+  padding-right: 4px;
+}
+.form-label .req { color: var(--gold-1); margin-left: 3px; }
+
+.input-shell {
+  background: var(--white);
+  border: 1.5px solid var(--border);
+  border-radius: var(--r-pill);
+  padding: 12px 18px;
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-d);
+  width: 100%;
+  outline: none;
+  transition: border-color .2s, box-shadow .2s;
+  text-align: center;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.input-shell:focus {
+  border-color: var(--gold-3);
+  box-shadow: 0 0 0 3px rgba(221,158,89,.15);
+}
+
+select.input-shell {
+  background: var(--white) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2340513B' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E") no-repeat left 18px center;
+  padding-left: 38px;
+  cursor: pointer;
+}
+
+/* Date row */
+.date-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1.2fr;
+  gap: 8px;
+}
+
+/* Stepper */
+.stepper {
+  display: flex;
+  align-items: center;
+  background: var(--white);
+  border: 1.5px solid var(--border);
+  border-radius: var(--r-pill);
+  overflow: hidden;
+}
+.stepper-btn {
+  width: 44px;
+  height: 44px;
+  border: none;
+  background: transparent;
+  color: var(--olive-2);
+  font-size: 1.4rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background .15s;
+}
+.stepper-btn:active { background: rgba(64,81,59,.08); }
+.stepper-btn svg { width: 18px; height: 18px; stroke: currentColor; stroke-width: 2.5; fill: none; stroke-linecap: round; }
+.stepper-val {
+  flex: 1;
+  text-align: center;
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--text-d);
+  border: none;
+  background: transparent;
+  outline: none;
+  font-family: inherit;
+  -moz-appearance: textfield;
+}
+.stepper-val::-webkit-outer-spin-button,
+.stepper-val::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+.hint {
+  font-size: 0.72rem;
+  color: var(--text-l);
+  margin-top: 6px;
+  padding-right: 6px;
+}
+
+/* === SUBMIT === */
+.submit-btn {
+  width: 100%;
+  padding: 16px;
+  background: linear-gradient(135deg, var(--gold-1) 0%, var(--gold-2) 50%, var(--gold-3) 100%);
+  color: #fff;
+  border: none;
+  border-radius: var(--r-pill);
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(184,129,58,.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: transform .15s, box-shadow .2s;
+}
+.submit-btn:active {
+  transform: translateY(1px);
+  box-shadow: 0 2px 8px rgba(184,129,58,.3);
+}
+.submit-btn svg { width: 20px; height: 20px; stroke: currentColor; stroke-width: 2.5; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+
+/* === RESULTS === */
+.results-section {
+  margin-top: 22px;
+  display: none;
+  animation: fadeUp .4s ease;
+}
+.results-section.show { display: block; }
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 24px 14px 12px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-l);
+  letter-spacing: 1px;
+}
+.section-title::before,
+.section-title::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+/* Current squad card — featured */
+.current-card {
+  background: linear-gradient(135deg, #40513B 0%, #4E6147 50%, #5A7251 100%);
+  color: #fff;
+  border-radius: var(--r-xl);
+  padding: 22px 20px;
+  margin-bottom: 16px;
+  box-shadow: 0 12px 32px rgba(64,81,59,.25);
+  position: relative;
+  overflow: hidden;
+}
+.current-card::before {
+  content: '';
+  position: absolute;
+  top: -40%;
+  right: -20%;
+  width: 200px;
+  height: 200px;
+  background: radial-gradient(circle, rgba(221,158,89,.25) 0%, transparent 70%);
+  pointer-events: none;
+}
+.current-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: linear-gradient(135deg, var(--gold-2), var(--gold-3));
+  color: #fff;
+  padding: 5px 12px;
+  border-radius: var(--r-pill);
+  font-size: 0.7rem;
+  font-weight: 700;
+  margin-bottom: 10px;
+  box-shadow: 0 2px 8px rgba(184,129,58,.4);
+}
+.current-badge::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #fff;
+  animation: pulse 1.6s infinite;
+}
+@keyframes pulse {
+  0%,100% { opacity: 1; box-shadow: 0 0 0 0 rgba(255,255,255,.6); }
+  50%     { opacity: .7; box-shadow: 0 0 0 6px rgba(255,255,255,0); }
+}
+.current-card h3 {
+  font-size: 1.25rem;
+  font-weight: 800;
+  margin-bottom: 14px;
+  position: relative;
+}
+.date-block {
+  background: rgba(255,255,255,.08);
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: var(--r-md);
+  padding: 12px 14px;
+  margin-bottom: 12px;
+  position: relative;
+  backdrop-filter: blur(6px);
+}
+.date-block-label {
+  font-size: 0.7rem;
+  opacity: 0.75;
+  margin-bottom: 4px;
+  font-weight: 500;
+}
+.date-block-main {
+  font-size: 1rem;
+  font-weight: 800;
+  margin-bottom: 2px;
+}
+.date-block-sub {
+  font-size: 0.78rem;
+  opacity: 0.85;
+  font-weight: 500;
+}
+
+/* Progress */
+.progress-wrap {
+  margin-top: 14px;
+  position: relative;
+}
+.progress-info {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.78rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+.progress-bar {
+  height: 10px;
+  background: rgba(255,255,255,.15);
+  border-radius: var(--r-pill);
+  overflow: hidden;
+  position: relative;
+}
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--gold-1), var(--gold-3));
+  border-radius: var(--r-pill);
+  transition: width .8s cubic-bezier(.4,0,.2,1);
+  box-shadow: 0 0 12px rgba(221,158,89,.5);
+}
+.progress-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 12px;
+}
+.stat-pill {
+  background: rgba(255,255,255,.08);
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: var(--r-md);
+  padding: 10px 12px;
+  text-align: center;
+}
+.stat-pill .num {
+  font-size: 1.4rem;
+  font-weight: 800;
+  margin-bottom: 2px;
+}
+.stat-pill .lbl {
+  font-size: 0.7rem;
+  opacity: 0.8;
+  font-weight: 500;
+}
+
+/* Upcoming squads */
+.upcoming-card {
+  background: var(--white);
+  border-radius: var(--r-xl);
+  padding: 18px 16px;
+  margin-bottom: 12px;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid rgba(213,205,184,.6);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  position: relative;
+  overflow: hidden;
+}
+.upcoming-card::after {
+  content: '';
+  position: absolute;
+  top: 0; right: 0;
+  width: 4px; height: 100%;
+  background: linear-gradient(180deg, var(--gold-2), var(--gold-3));
+}
+
+.squad-num {
+  width: 52px; height: 52px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #E8DFC4, #DCD0AE);
+  color: var(--olive-2);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-weight: 800;
+  border: 1px solid rgba(184,129,58,.2);
+}
+.squad-num .n { font-size: 1.4rem; line-height: 1; }
+.squad-num .lbl { font-size: 0.55rem; margin-top: 2px; opacity: 0.7; }
+
+.squad-info { flex: 1; min-width: 0; }
+.squad-name {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--text-d);
+  margin-bottom: 4px;
+}
+.squad-date {
+  font-size: 0.78rem;
+  color: var(--text-m);
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+.squad-date-greg {
+  font-size: 0.7rem;
+  color: var(--text-l);
+  font-weight: 400;
+}
+
+.countdown {
+  text-align: center;
+  flex-shrink: 0;
+  background: linear-gradient(135deg, #FFF8E8, #F5EBC9);
+  padding: 8px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(184,129,58,.15);
+  min-width: 64px;
+}
+.countdown .days {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: var(--gold-1);
+  line-height: 1;
+}
+.countdown .lbl {
+  font-size: 0.62rem;
+  color: var(--text-l);
+  margin-top: 2px;
+  font-weight: 600;
+}
+
+/* Empty state hint */
+.empty-hint {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--text-l);
+}
+.empty-hint svg {
+  width: 48px; height: 48px;
+  opacity: 0.4;
+  margin-bottom: 12px;
+  stroke: currentColor; stroke-width: 1.5; fill: none;
+}
+.empty-hint p { font-size: 0.85rem; }
+
+/* Disclaimer */
+.disclaimer {
+  text-align: center;
+  font-size: 0.72rem;
+  color: var(--text-l);
+  margin: 28px 20px 0;
+  padding: 12px;
+  line-height: 1.6;
+}
+
+/* === DATE PICKER BUTTON === */
+.date-picker-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: var(--white);
+  border: 1.5px solid var(--border);
+  border-radius: var(--r-pill);
+  padding: 12px 18px 12px 16px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: border-color .2s, box-shadow .2s, transform .12s, background .2s;
+  text-align: right;
+  position: relative;
+}
+.date-picker-btn:hover {
+  border-color: var(--gold-3);
+  box-shadow: 0 4px 14px rgba(221,158,89,.12);
+}
+.date-picker-btn:active {
+  transform: scale(.985);
+  background: #FAF8F2;
+}
+.date-picker-btn:focus {
+  border-color: var(--gold-3);
+  box-shadow: 0 0 0 3px rgba(221,158,89,.18);
+  outline: none;
+}
+.date-picker-btn.has-value {
+  background: linear-gradient(135deg, #FFFCF2 0%, #FBF1D9 100%);
+  border-color: var(--gold-3);
+}
+.dp-icon {
+  width: 28px; height: 28px;
+  color: var(--gold-1);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  transition: color .2s, transform .2s;
+}
+.date-picker-btn.has-value .dp-icon { color: var(--gold-1); }
+.date-picker-btn:hover .dp-icon { transform: scale(1.06); }
+.dp-icon svg { width: 22px; height: 22px; }
+.dp-text { flex: 1; min-width: 0; }
+.dp-main {
+  display: block;
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: var(--text-d);
+  line-height: 1.3;
+}
+.dp-sub {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: var(--text-l);
+  margin-top: 3px;
+}
+.date-picker-btn.has-value .dp-sub { color: var(--gold-1); font-weight: 600; }
+.dp-arrow {
+  color: var(--text-l);
+  display: flex;
+  transition: transform .2s;
+}
+.date-picker-btn:hover .dp-arrow { transform: translateY(2px); color: var(--gold-1); }
+.dp-arrow svg { width: 16px; height: 16px; }
+
+/* === CALENDAR OVERLAY === */
+.cal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(40,55,35,.55);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  z-index: 100;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 16px 12px;
+  opacity: 0;
+  transition: opacity .25s ease;
+}
+.cal-overlay.show { display: flex; opacity: 1; }
+
+.cal-modal {
+  background: var(--white);
+  border-radius: var(--r-xl);
+  width: 100%;
+  max-width: 380px;
+  padding: 16px 12px 18px;
+  box-shadow: 0 12px 40px rgba(0,0,0,.25);
+  transform: scale(.92);
+  opacity: 0;
+  transition: transform .35s cubic-bezier(.34,1.16,.64,1), opacity .25s ease;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+.cal-overlay.show .cal-modal { transform: scale(1); opacity: 1; }
+
+.cal-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.cal-nav {
+  width: 38px; height: 38px;
+  border: none;
+  background: var(--bg);
+  border-radius: 12px;
+  color: var(--olive-2);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background .15s, transform .1s;
+  flex-shrink: 0;
+}
+.cal-nav:active { transform: scale(.92); }
+.cal-nav:hover { background: var(--beige); }
+.cal-nav svg { width: 18px; height: 18px; }
+
+.cal-title { flex: 1; text-align: center; }
+.cal-title-main {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--text-d);
+}
+.cal-title-sub {
+  font-size: 0.72rem;
+  color: #A68B5B;
+  font-weight: 600;
+  margin-top: 2px;
+}
+
+.cal-year-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.cal-year-btn {
+  flex: 1;
+  border: 1px solid var(--border);
+  background: var(--white);
+  color: var(--text-m);
+  padding: 8px 10px;
+  border-radius: var(--r-pill);
+  font-family: inherit;
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: background .15s, color .15s, border-color .15s;
+}
+.cal-year-btn:hover {
+  background: var(--olive-2);
+  color: #fff;
+  border-color: var(--olive-2);
+}
+.cal-year-btn svg { width: 12px; height: 12px; }
+
+.cal-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  margin-bottom: 6px;
+  padding: 0 2px;
+}
+.cal-weekdays span {
+  text-align: center;
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--text-l);
+  padding: 4px 0;
+}
+
+.cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+.cal-cell {
+  aspect-ratio: 1;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border: 1.5px solid transparent;
+  background: var(--bg);
+  transition: background .15s, border-color .15s, transform .1s, color .15s;
+  padding: 2px;
+  user-select: none;
+  -webkit-user-select: none;
+  position: relative;
+}
+.cal-cell.empty {
+  background: transparent;
+  cursor: default;
+  pointer-events: none;
+}
+.cal-cell:not(.empty):hover {
+  background: var(--beige);
+  border-color: var(--gold-2);
+}
+.cal-cell:not(.empty):active { transform: scale(.94); }
+.cal-cell .h-num {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--text-d);
+  line-height: 1;
+}
+.cal-cell .g-num {
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: #A68B5B;
+  margin-top: 3px;
+  line-height: 1;
+}
+.cal-cell.today {
+  background: #FFFCF2;
+}
+.cal-cell.selected {
+  background: linear-gradient(135deg, var(--olive-2), var(--olive-4));
+  box-shadow: 0 4px 12px rgba(64,81,59,.3);
+}
+.cal-cell.selected .h-num { color: #fff; }
+.cal-cell.selected .g-num { color: rgba(255,235,200,.85); }
+
+.cal-footer {
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px dashed var(--border);
+}
+.cal-btn {
+  flex: 1;
+  padding: 12px;
+  border: none;
+  border-radius: var(--r-pill);
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: transform .1s, box-shadow .15s;
+}
+.cal-btn:active { transform: translateY(1px); }
+.cal-btn-today {
+  background: linear-gradient(135deg, var(--gold-1), var(--gold-3));
+  color: #fff;
+  box-shadow: 0 3px 10px rgba(184,129,58,.3);
+}
+.cal-btn-cancel {
+  background: var(--bg);
+  color: var(--text-m);
+  border: 1px solid var(--border);
+}
+
+/* === ACCORDION (Upcoming receipts inside card) === */
+.more-receipts-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  margin-top: 12px;
+  padding: 9px 14px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--r-pill);
+  color: var(--olive-2);
+  font-family: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background .15s, color .15s;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.more-receipts-toggle:focus { outline: none; }
+.more-receipts-toggle:hover {
+  background: var(--olive-2);
+  color: #fff;
+  border-color: var(--olive-2);
+}
+.more-receipts-toggle svg {
+  width: 14px; height: 14px;
+  transition: transform .35s ease;
+}
+.more-receipts-toggle.open svg { transform: rotate(180deg); }
+
+.more-receipts-panel {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height .45s cubic-bezier(.4,0,.2,1);
+}
+.more-receipts-panel.open { max-height: 500px; }
+
+.more-receipts-inner {
+  padding-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.next-recv {
+  background: linear-gradient(135deg, #F8F4E8, #F2EAD2);
+  border: 1px dashed rgba(184,129,58,.35);
+  border-radius: var(--r-md);
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.next-recv-num {
+  width: 32px; height: 32px;
+  border-radius: 9px;
+  background: linear-gradient(135deg, var(--gold-2), var(--gold-3));
+  color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.78rem;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+.next-recv-info { flex: 1; min-width: 0; }
+.next-recv-info .lbl {
+  font-size: 0.65rem;
+  color: var(--text-l);
+  font-weight: 600;
+  margin-bottom: 1px;
+}
+.next-recv-info .date {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-d);
+  line-height: 1.3;
+}
+.next-recv-info .greg {
+  font-size: 0.68rem;
+  color: var(--text-l);
+  font-weight: 500;
+}
+.next-recv-days {
+  text-align: center;
+  background: rgba(255,255,255,.7);
+  border-radius: 8px;
+  padding: 4px 8px;
+  flex-shrink: 0;
+}
+.next-recv-days .n {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--gold-1);
+  line-height: 1;
+}
+.next-recv-days .l {
+  font-size: 0.58rem;
+  color: var(--text-l);
+  font-weight: 600;
+  margin-top: 1px;
+}
+
+/* Responsive */
+@media (max-width: 380px) {
+  .app-header h1 { font-size: 1.25rem; }
+  .container { padding: 0 10px; }
+  .card { padding: 18px 14px; }
+  .upcoming-card { padding: 14px 12px; gap: 10px; }
+  .squad-num { width: 46px; height: 46px; }
+  .countdown { min-width: 58px; padding: 7px 10px; }
+}
+
+/* Force light mode */
+@media (prefers-color-scheme: dark) {
+  html { filter: none !important; }
+  body { background-color: var(--bg) !important; color: var(--text-m) !important; }
+  * { -webkit-filter: none !important; filter: none !important; }
+}
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <h1>حاسبة مواعيد السرايا</h1>
+  <p>احسب مواعيد التسليم والاستلام بدقة</p>
+  <span class="badge">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+    حساب فوري بالتقويم الهجري
+  </span>
+</header>
+
+<div class="container">
+
+  <!-- INPUTS CARD -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="4" width="18" height="18" rx="2"/>
+          <line x1="16" y1="2" x2="16" y2="6"/>
+          <line x1="8" y1="2" x2="8" y2="6"/>
+          <line x1="3" y1="10" x2="21" y2="10"/>
+        </svg>
+      </div>
+      <div class="card-title">
+        <h2>بيانات السرية الحالية</h2>
+        <p>أدخل تاريخ بداية الاستلام والمدة</p>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">تاريخ بداية الاستلام (هجري)<span class="req">*</span></label>
+      <button type="button" class="date-picker-btn" id="date-picker-btn" onclick="openCalendar()">
+        <span class="dp-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="4" y="5" width="16" height="16" rx="3"/>
+            <path d="M4 10h16"/>
+            <path d="M9 3v3M15 3v3"/>
+          </svg>
+        </span>
+        <span class="dp-text">
+          <span class="dp-main" id="dp-main">اختر التاريخ</span>
+          <span class="dp-sub" id="dp-sub">اضغط لفتح التقويم</span>
+        </span>
+        <span class="dp-arrow">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </span>
+      </button>
+      <input type="hidden" id="start-day">
+      <input type="hidden" id="start-month">
+      <input type="hidden" id="start-year">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">عدد أيام الاستلام<span class="req">*</span></label>
+      <div class="stepper">
+        <button class="stepper-btn" onclick="step('duration', -1)" aria-label="نقص">
+          <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </button>
+        <input type="number" class="stepper-val" id="duration" value="14" min="1" max="365" inputmode="numeric">
+        <button class="stepper-btn" onclick="step('duration', 1)" aria-label="زيادة">
+          <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </button>
+      </div>
+      <div class="hint">يوم لكل سرية</div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">إجمالي عدد السرايا<span class="req">*</span></label>
+      <div class="stepper">
+        <button class="stepper-btn" onclick="step('total-squads', -1, updateSquadOptions)" aria-label="نقص">
+          <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </button>
+        <input type="number" class="stepper-val" id="total-squads" value="4" min="2" max="20" inputmode="numeric" oninput="updateSquadOptions()">
+        <button class="stepper-btn" onclick="step('total-squads', 1, updateSquadOptions)" aria-label="زيادة">
+          <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">رقم السرية المستلمة حالياً<span class="req">*</span></label>
+      <select class="input-shell" id="current-squad"></select>
+    </div>
+
+    <button class="submit-btn" onclick="calculate()">
+      <svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+      احسب المواعيد
+    </button>
+  </div>
+
+  <!-- RESULTS -->
+  <div class="results-section" id="results">
+    <div class="section-title">السرية المستلمة حالياً</div>
+    <div id="current-output"></div>
+    <div class="section-title" id="upcoming-title" style="display:none;">السرايا القادمة</div>
+    <div id="upcoming-output"></div>
+  </div>
+
+  <p class="disclaimer">
+    ⚠️ الحساب اعتماداً على تاريخ الجهاز والتقويم الهجري الأم القرى — تحقق من النتيجة قبل الاعتماد عليها.
+  </p>
+
+</div>
+
+<!-- CALENDAR MODAL -->
+<div class="cal-overlay" id="cal-overlay" onclick="closeCalendar(event)">
+  <div class="cal-modal" onclick="event.stopPropagation()">
+    <div class="cal-header">
+      <button class="cal-nav" onclick="navMonth(-1)" aria-label="الشهر السابق">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+      <div class="cal-title">
+        <div class="cal-title-main" id="cal-title-main">—</div>
+        <div class="cal-title-sub" id="cal-title-sub">—</div>
+      </div>
+      <button class="cal-nav" onclick="navMonth(1)" aria-label="الشهر التالي">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
+    </div>
+
+    <div class="cal-weekdays">
+      <span>الأحد</span><span>الإثنين</span><span>الثلاثاء</span>
+      <span>الأربعاء</span><span>الخميس</span><span>الجمعة</span><span>السبت</span>
+    </div>
+
+    <div class="cal-grid" id="cal-grid"></div>
+
+    <div class="cal-footer">
+      <button class="cal-btn cal-btn-today" onclick="confirmCalendar()">موافق</button>
+      <button class="cal-btn cal-btn-cancel" onclick="closeCalendar()">إلغاء</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============================================
+   CALENDAR PICKER
+============================================ */
+let calState = {
+  viewYear: 0,    /* hijri year being viewed */
+  viewMonth: 0,   /* hijri month being viewed (1-12) */
+  selected: null  /* {y, m, d} */
+};
+
+function openCalendar() {
+  const dayEl = document.getElementById('start-day');
+  const monthEl = document.getElementById('start-month');
+  const yearEl = document.getElementById('start-year');
+
+  if (dayEl.value && monthEl.value && yearEl.value) {
+    calState.viewYear  = parseInt(yearEl.value, 10);
+    calState.viewMonth = parseInt(monthEl.value, 10);
+    calState.selected  = {
+      y: parseInt(yearEl.value, 10),
+      m: parseInt(monthEl.value, 10),
+      d: parseInt(dayEl.value, 10)
+    };
+  } else {
+    /* default to today */
+    const now = new Date();
+    const h = gregToHijri(now.getFullYear(), now.getMonth() + 1, now.getDate());
+    calState.viewYear  = h.y;
+    calState.viewMonth = h.m;
+    calState.selected  = null;
+  }
+
+  renderCalendar();
+  document.getElementById('cal-overlay').classList.add('show');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeCalendar(ev) {
+  if (ev && ev.target.id !== 'cal-overlay' && !ev.currentTarget.classList.contains('cal-overlay') && ev.type !== 'click') return;
+  document.getElementById('cal-overlay').classList.remove('show');
+  document.body.style.overflow = '';
+}
+
+function navMonth(delta) {
+  calState.viewMonth += delta;
+  if (calState.viewMonth < 1) { calState.viewMonth = 12; calState.viewYear -= 1; }
+  if (calState.viewMonth > 12) { calState.viewMonth = 1; calState.viewYear += 1; }
+  renderCalendar();
+}
+
+function navYear(delta) {
+  calState.viewYear += delta;
+  renderCalendar();
+}
+
+function selectDate(y, m, d) {
+  /* Just mark visually; don't apply yet — wait for confirm */
+  calState.selected = { y, m, d };
+  renderCalendar();
+}
+
+function confirmCalendar() {
+  if (!calState.selected) {
+    /* If nothing picked, use today */
+    const now = new Date();
+    const h = gregToHijri(now.getFullYear(), now.getMonth() + 1, now.getDate());
+    calState.selected = h;
+  }
+  const { y, m, d } = calState.selected;
+  document.getElementById('start-year').value = y;
+  document.getElementById('start-month').value = m;
+  document.getElementById('start-day').value = d;
+
+  const btn = document.getElementById('date-picker-btn');
+  const main = document.getElementById('dp-main');
+  const sub = document.getElementById('dp-sub');
+  const greg = hijriToGreg(y, m, d);
+
+  main.textContent = d + ' ' + HIJRI_MONTHS[m - 1] + ' ' + y + 'هـ';
+  sub.textContent = '✓ ' + WEEKDAYS[jdnToWeekday(hijriToJDN(y, m, d))] + ' — ' + fmtGreg(greg);
+  btn.classList.add('has-value');
+
+  closeCalendar();
+}
+
+function renderCalendar() {
+  const y = calState.viewYear;
+  const m = calState.viewMonth;
+  const greg = hijriToGreg(y, m, 1);
+
+  /* Title */
+  document.getElementById('cal-title-main').textContent = HIJRI_MONTHS[m - 1] + ' ' + y + 'هـ';
+  document.getElementById('cal-title-sub').textContent = GREG_MONTHS[greg.m - 1] + ' ' + greg.y + 'م';
+
+  /* Build grid */
+  const grid = document.getElementById('cal-grid');
+  grid.innerHTML = '';
+
+  const firstJDN = hijriToJDN(y, m, 1);
+  const firstWeekday = jdnToWeekday(firstJDN); /* 0=Sun */
+
+  /* Determine days in this Hijri month: try 30 then 29 */
+  let daysInMonth = 30;
+  /* Check if day 30 wraps to next month */
+  const day30Hijri = jdnToHijri(firstJDN + 29);
+  if (day30Hijri.m !== m || day30Hijri.y !== y) daysInMonth = 29;
+
+  /* Today JDN for highlight */
+  const now = new Date();
+  const todayJDN = gregToJDN(now.getFullYear(), now.getMonth() + 1, now.getDate());
+
+  /* Empty cells before first day */
+  for (let i = 0; i < firstWeekday; i++) {
+    const empty = document.createElement('div');
+    empty.className = 'cal-cell empty';
+    grid.appendChild(empty);
+  }
+
+  /* Day cells */
+  for (let d = 1; d <= daysInMonth; d++) {
+    const cellJDN = firstJDN + (d - 1);
+    const g = jdnToGreg(cellJDN);
+    const cell = document.createElement('div');
+    cell.className = 'cal-cell';
+    if (cellJDN === todayJDN) cell.classList.add('today');
+    if (calState.selected &&
+        calState.selected.y === y &&
+        calState.selected.m === m &&
+        calState.selected.d === d) cell.classList.add('selected');
+
+    cell.innerHTML = '<span class="h-num">' + d + '</span><span class="g-num">' + g.d + '</span>';
+    cell.onclick = () => selectDate(y, m, d);
+    grid.appendChild(cell);
+  }
+}
+
+/* ============================================
+   HIJRI ↔ GREGORIAN CONVERSION
+   Algorithm: Umm al-Qura calendar approximation
+   (Kuwaiti Algorithm — accurate to ±1 day)
+============================================ */
+
+const HIJRI_MONTHS = [
+  'محرم', 'صفر', 'ربيع الأول', 'ربيع الثاني',
+  'جمادى الأولى', 'جمادى الآخرة', 'رجب', 'شعبان',
+  'رمضان', 'شوال', 'ذو القعدة', 'ذو الحجة'
+];
+const GREG_MONTHS = [
+  'يناير','فبراير','مارس','أبريل','مايو','يونيو',
+  'يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'
+];
+const WEEKDAYS = ['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
+
+/* Convert Gregorian to Julian Day Number */
+function gregToJDN(y, m, d) {
+  if (m < 3) { y -= 1; m += 12; }
+  const a = Math.floor(y / 100);
+  const b = 2 - a + Math.floor(a / 4);
+  return Math.floor(365.25 * (y + 4716)) + Math.floor(30.6001 * (m + 1)) + d + b - 1524;
+}
+
+/* Convert JDN to Gregorian */
+function jdnToGreg(jdn) {
+  const a = jdn + 32044;
+  const b = Math.floor((4 * a + 3) / 146097);
+  const c = a - Math.floor((146097 * b) / 4);
+  const d = Math.floor((4 * c + 3) / 1461);
+  const e = c - Math.floor((1461 * d) / 4);
+  const m = Math.floor((5 * e + 2) / 153);
+  const day = e - Math.floor((153 * m + 2) / 5) + 1;
+  const month = m + 3 - 12 * Math.floor(m / 10);
+  const year = 100 * b + d - 4800 + Math.floor(m / 10);
+  return { y: year, m: month, d: day };
+}
+
+/* Hijri to JDN (Kuwaiti algorithm) */
+function hijriToJDN(y, m, d) {
+  return Math.floor((11 * y + 3) / 30) + 354 * y + 30 * m - Math.floor((m - 1) / 2) + d + 1948440 - 385;
+}
+
+/* JDN to Hijri */
+function jdnToHijri(jdn) {
+  const l = jdn - 1948440 + 10632;
+  const n = Math.floor((l - 1) / 10631);
+  const l2 = l - 10631 * n + 354;
+  const j = (Math.floor((10985 - l2) / 5316)) * (Math.floor((50 * l2) / 17719)) +
+            (Math.floor(l2 / 5670)) * (Math.floor((43 * l2) / 15238));
+  const l3 = l2 - (Math.floor((30 - j) / 15)) * (Math.floor((17719 * j) / 50)) -
+             (Math.floor(j / 16)) * (Math.floor((15238 * j) / 43)) + 29;
+  const m = Math.floor((24 * l3) / 709);
+  const d = l3 - Math.floor((709 * m) / 24);
+  const y = 30 * n + j - 30;
+  return { y, m, d };
+}
+
+function hijriToGreg(y, m, d) { return jdnToGreg(hijriToJDN(y, m, d)); }
+function gregToHijri(y, m, d) { return jdnToHijri(gregToJDN(y, m, d)); }
+
+/* Get weekday from JDN (0=Sunday) */
+function jdnToWeekday(jdn) { return (jdn + 1) % 7; }
+
+/* Add days to Hijri date */
+function addDaysToHijri(y, m, d, days) {
+  const jdn = hijriToJDN(y, m, d) + days;
+  return { hijri: jdnToHijri(jdn), greg: jdnToGreg(jdn), jdn };
+}
+
+/* Days difference between two JDNs */
+function daysBetween(jdn1, jdn2) { return jdn2 - jdn1; }
+
+/* Format Hijri date */
+function fmtHijri(h) {
+  return h.d + ' ' + HIJRI_MONTHS[h.m - 1] + ' ' + h.y + 'هـ';
+}
+function fmtGreg(g) {
+  return g.d + ' ' + GREG_MONTHS[g.m - 1] + ' ' + g.y + 'م';
+}
+
+/* ============================================
+   UI LOGIC
+============================================ */
+
+function step(id, delta, callback) {
+  const el = document.getElementById(id);
+  let val = parseInt(el.value, 10) || 0;
+  const min = parseInt(el.min, 10);
+  const max = parseInt(el.max, 10);
+  val += delta;
+  if (!isNaN(min) && val < min) val = min;
+  if (!isNaN(max) && val > max) val = max;
+  el.value = val;
+  if (callback) callback();
+}
+
+function updateSquadOptions() {
+  const total = parseInt(document.getElementById('total-squads').value, 10) || 4;
+  const select = document.getElementById('current-squad');
+  const ordinals = ['الأولى','الثانية','الثالثة','الرابعة','الخامسة','السادسة','السابعة','الثامنة','التاسعة','العاشرة','الحادية عشرة','الثانية عشرة','الثالثة عشرة','الرابعة عشرة','الخامسة عشرة','السادسة عشرة','السابعة عشرة','الثامنة عشرة','التاسعة عشرة','العشرون'];
+  const prev = parseInt(select.value, 10) || 1;
+  select.innerHTML = '';
+  for (let i = 1; i <= total; i++) {
+    const opt = document.createElement('option');
+    opt.value = i;
+    opt.textContent = 'السرية ' + (ordinals[i - 1] || i);
+    select.appendChild(opt);
+  }
+  if (prev <= total) select.value = prev;
+}
+
+function ordinalSquad(i) {
+  const ords = ['الأولى','الثانية','الثالثة','الرابعة','الخامسة','السادسة','السابعة','الثامنة','التاسعة','العاشرة','الحادية عشرة','الثانية عشرة','الثالثة عشرة','الرابعة عشرة','الخامسة عشرة','السادسة عشرة','السابعة عشرة','الثامنة عشرة','التاسعة عشرة','العشرون'];
+  return ords[i - 1] || ('رقم ' + i);
+}
+
+function calculate() {
+  const startDay   = parseInt(document.getElementById('start-day').value, 10);
+  const startMonth = parseInt(document.getElementById('start-month').value, 10);
+  const startYear  = parseInt(document.getElementById('start-year').value, 10);
+  const duration   = parseInt(document.getElementById('duration').value, 10);
+  const totalSquads = parseInt(document.getElementById('total-squads').value, 10);
+  const currentSquad = parseInt(document.getElementById('current-squad').value, 10);
+
+  /* Validation */
+  if (!startDay || !startMonth || !startYear || !duration) {
+    alert('يرجى تعبئة جميع الحقول المطلوبة');
+    return;
+  }
+  if (startDay < 1 || startDay > 30 || startMonth < 1 || startMonth > 12) {
+    alert('تاريخ غير صحيح، الرجاء التحقق');
+    return;
+  }
+
+  /* Today */
+  const now = new Date();
+  const todayJDN = gregToJDN(now.getFullYear(), now.getMonth() + 1, now.getDate());
+
+  /* Current squad start & end */
+  const currStartJDN = hijriToJDN(startYear, startMonth, startDay);
+  const currEndJDN   = currStartJDN + duration; /* end = start + duration days */
+  const currEndDate  = addDaysToHijri(startYear, startMonth, startDay, duration);
+
+  const daysPassed   = todayJDN - currStartJDN;
+  const daysRemaining = currEndJDN - todayJDN;
+
+  /* Render current */
+  renderCurrent({
+    squadNum: currentSquad,
+    startHijri: { y: startYear, m: startMonth, d: startDay },
+    startGreg: jdnToGreg(currStartJDN),
+    endHijri: currEndDate.hijri,
+    endGreg: currEndDate.greg,
+    endWeekday: WEEKDAYS[jdnToWeekday(currEndJDN)],
+    daysPassed: Math.max(0, daysPassed),
+    daysRemaining: Math.max(0, daysRemaining),
+    duration
+  });
+
+  /* Upcoming squads — compute 3 future receipts each */
+  const upcoming = [];
+  for (let i = 1; i <= totalSquads; i++) {
+    if (i === currentSquad) continue;
+
+    const offsetSquads = (i - currentSquad + totalSquads) % totalSquads;
+    /* First receipt of squad i */
+    const firstReceiptJDN = currEndJDN + (offsetSquads - 1) * duration;
+
+    /* Compute 3 receipts: first, +totalSquads*duration, +2*totalSquads*duration */
+    const cycleDays = totalSquads * duration;
+    const receipts = [];
+    for (let r = 0; r < 3; r++) {
+      const jdn = firstReceiptJDN + r * cycleDays;
+      receipts.push({
+        jdn,
+        hijri: jdnToHijri(jdn),
+        greg: jdnToGreg(jdn),
+        weekday: WEEKDAYS[jdnToWeekday(jdn)],
+        daysLeft: Math.max(0, jdn - todayJDN)
+      });
+    }
+
+    upcoming.push({
+      squadNum: i,
+      receipts
+    });
+  }
+
+  /* Sort by first receipt's days left */
+  upcoming.sort((a, b) => a.receipts[0].daysLeft - b.receipts[0].daysLeft);
+
+  renderUpcoming(upcoming);
+
+  /* Show results */
+  document.getElementById('results').classList.add('show');
+  setTimeout(() => {
+    document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 100);
+}
+
+function renderCurrent(data) {
+  const total = data.duration;
+  const passed = Math.min(data.daysPassed, total);
+  const pct = Math.max(0, Math.min(100, (passed / total) * 100));
+
+  let statusBadge = 'مستلمة حالياً';
+  if (data.daysRemaining === 0) statusBadge = 'انتهت اليوم';
+  else if (data.daysPassed < 0) statusBadge = 'قادمة';
+
+  const html = `
+    <div class="current-card">
+      <span class="current-badge">${statusBadge}</span>
+      <h3>السرية ${ordinalSquad(data.squadNum)}</h3>
+
+      <div class="date-block">
+        <div class="date-block-label">📅 تاريخ بدء الاستلام</div>
+        <div class="date-block-main">${fmtHijri(data.startHijri)}</div>
+        <div class="date-block-sub">${fmtGreg(data.startGreg)}</div>
+      </div>
+
+      <div class="date-block">
+        <div class="date-block-label">🏁 تاريخ التسليم القادم</div>
+        <div class="date-block-main">${fmtHijri(data.endHijri)} — ${data.endWeekday}</div>
+        <div class="date-block-sub">${fmtGreg(data.endGreg)}</div>
+      </div>
+
+      <div class="progress-wrap">
+        <div class="progress-info">
+          <span>التقدم</span>
+          <span>${Math.round(pct)}%</span>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" style="width:0%"></div>
+        </div>
+        <div class="progress-stats">
+          <div class="stat-pill">
+            <div class="num">${data.daysPassed}</div>
+            <div class="lbl">يوم مضى</div>
+          </div>
+          <div class="stat-pill">
+            <div class="num">${data.daysRemaining}</div>
+            <div class="lbl">يوم متبقي</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+  document.getElementById('current-output').innerHTML = html;
+
+  /* Animate progress */
+  setTimeout(() => {
+    const fill = document.querySelector('.progress-fill');
+    if (fill) fill.style.width = pct + '%';
+  }, 200);
+}
+
+function renderUpcoming(squads) {
+  const wrap = document.getElementById('upcoming-output');
+  const titleEl = document.getElementById('upcoming-title');
+
+  if (!squads.length) {
+    wrap.innerHTML = '';
+    titleEl.style.display = 'none';
+    return;
+  }
+
+  titleEl.style.display = 'flex';
+
+  wrap.innerHTML = squads.map((s, idx) => {
+    const first = s.receipts[0];
+    const next2 = s.receipts.slice(1); /* receipts 2 & 3 */
+
+    const moreHtml = next2.map((r, i) => `
+      <div class="next-recv">
+        <div class="next-recv-num">${i + 2}</div>
+        <div class="next-recv-info">
+          <div class="lbl">الاستلام ${i === 0 ? 'الثاني' : 'الثالث'} — ${r.weekday}</div>
+          <div class="date">${fmtHijri(r.hijri)}</div>
+          <div class="greg">${fmtGreg(r.greg)}</div>
+        </div>
+        <div class="next-recv-days">
+          <div class="n">${r.daysLeft}</div>
+          <div class="l">يوم</div>
+        </div>
+      </div>
+    `).join('');
+
+    return `
+      <div class="card" style="padding:18px 16px;">
+        <div style="display:flex;align-items:center;gap:14px;">
+          <div class="squad-num">
+            <div class="n">${s.squadNum}</div>
+            <div class="lbl">سرية</div>
+          </div>
+          <div class="squad-info">
+            <div class="squad-name">السرية ${ordinalSquad(s.squadNum)} — ${first.weekday}</div>
+            <div class="squad-date">${fmtHijri(first.hijri)}</div>
+            <div class="squad-date-greg">${fmtGreg(first.greg)}</div>
+          </div>
+          <div class="countdown">
+            <div class="days">${first.daysLeft}</div>
+            <div class="lbl">يوم</div>
+          </div>
+        </div>
+
+        <button class="more-receipts-toggle" onclick="toggleAccordion(this)">
+          <span>عرض الاستلامات القادمة</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+
+        <div class="more-receipts-panel">
+          <div class="more-receipts-inner">
+            ${moreHtml}
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function toggleAccordion(btn) {
+  const panel = btn.nextElementSibling;
+  const isOpen = btn.classList.toggle('open');
+  panel.classList.toggle('open', isOpen);
+  btn.querySelector('span').textContent = isOpen ? 'إخفاء الاستلامات القادمة' : 'عرض الاستلامات القادمة';
+}
+
+/* Init */
+updateSquadOptions();
+
+/* Pre-fill today's hijri date as default */
+window.addEventListener('DOMContentLoaded', () => {
+  const dayEl = document.getElementById('start-day');
+  if (!dayEl.value) {
+    const now = new Date();
+    const h = gregToHijri(now.getFullYear(), now.getMonth() + 1, now.getDate());
+    calState.selected = { y: h.y, m: h.m, d: h.d };
+    confirmCalendar();
+  }
+});
+</script>
+
+</body>
+</html>
