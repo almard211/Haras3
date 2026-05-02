@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
 <meta name="color-scheme" content="light only">
-<title>حاسبة مواعيد السرايا</title>
+<title>احسب مواعيد استلام السرايا</title>
 <link rel="icon" type="image/png" href="icon.png">
 <link rel="apple-touch-icon" href="icon.png">
 
@@ -36,9 +36,10 @@
   --text-m: #445040;
   --text-l: #6B7563;
   --border: #D5CDB8;
-  --shadow-sm: 0 1px 3px rgba(64,81,59,.08);
-  --shadow-md: 0 4px 12px rgba(64,81,59,.12);
-  --shadow-lg: 0 8px 28px rgba(64,81,59,.18);
+  --shadow-sm: 0 2px 8px rgba(64,81,59,.06), 0 1px 2px rgba(64,81,59,.04);
+  --shadow-md: 0 8px 24px rgba(64,81,59,.1), 0 2px 8px rgba(64,81,59,.06);
+  --shadow-lg: 0 16px 40px rgba(64,81,59,.12), 0 4px 12px rgba(64,81,59,.08);
+  --shadow-card: 0 4px 20px rgba(64,81,59,.08), 0 0 0 1px rgba(64,81,59,.04);
   --r-sm: 8px;
   --r-md: 14px;
   --r-lg: 20px;
@@ -128,8 +129,8 @@ body {
   border-radius: var(--r-xl);
   padding: 22px 18px;
   margin-bottom: 14px;
-  box-shadow: var(--shadow-sm);
-  border: 1px solid rgba(213,205,184,.5);
+  box-shadow: var(--shadow-card);
+  border: 1px solid rgba(213,205,184,.45);
 }
 
 .card-header {
@@ -915,11 +916,264 @@ select.input-shell {
   margin-top: 1px;
 }
 
+/* ═══ Modern form — segmented, stepper pill, wide date ═══ */
+.form-card { padding: 22px 18px 20px; }
+.form-card-head { margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px dashed var(--border); }
+.form-card-title {
+  font-size: 1.08rem; font-weight: 800; color: var(--text-d); margin-bottom: 4px;
+}
+.form-card-sub {
+  font-size: 0.78rem; color: var(--text-l); line-height: 1.45; font-weight: 500;
+}
+.form-card.form-highlight {
+  animation: formPulse 1.1s ease;
+}
+@keyframes formPulse {
+  0%, 100% { box-shadow: var(--shadow-card); }
+  40% { box-shadow: 0 8px 32px rgba(98,129,65,.18), 0 0 0 2px rgba(98,129,65,.25); }
+}
+
+/* Segmented control 1–5 */
+.seg-row {
+  display: flex; gap: 8px; flex-wrap: wrap; justify-content: stretch;
+}
+.seg-btn {
+  flex: 1; min-width: 48px; height: 48px;
+  border: 1.5px solid var(--border);
+  border-radius: 50%;
+  background: var(--white);
+  color: var(--text-m);
+  font-family: inherit; font-size: 1rem; font-weight: 800;
+  cursor: pointer;
+  transition: background .15s, border-color .15s, color .15s, transform .1s, box-shadow .2s;
+}
+.seg-btn:hover { border-color: var(--gold-3); background: #FFFCF5; }
+.seg-btn:active { transform: scale(.94); }
+.seg-btn.is-active {
+  background: linear-gradient(145deg, var(--olive-2), var(--olive-4));
+  color: #fff;
+  border-color: transparent;
+  box-shadow: 0 4px 14px rgba(64,81,59,.28);
+}
+
+/* Stepper pill (aligned with Haras3 index) */
+.cal-stepper.stepper-pill {
+  height: 52px;
+  display: flex; align-items: center; gap: 6px;
+  background: var(--white);
+  border: 1.5px solid var(--border);
+  border-radius: var(--r-pill);
+  padding: 0 8px;
+  transition: border-color .18s, box-shadow .18s;
+}
+.cal-stepper.stepper-pill:focus-within {
+  border-color: var(--olive-3);
+  box-shadow: 0 0 0 3px rgba(98,129,65,.12);
+}
+.cal-stepper .sp-btn {
+  width: 40px; height: 40px; flex-shrink: 0;
+  border: 1.5px solid var(--border);
+  border-radius: 50%;
+  background: var(--bg);
+  color: var(--olive-2);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background .12s, transform .1s, border-color .15s;
+}
+.cal-stepper .sp-btn:active { transform: scale(.92); background: var(--beige); }
+.cal-stepper .sp-btn svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2.5; stroke-linecap: round; }
+.cal-stepper .sp-val {
+  flex: 1; border: none; outline: none; text-align: center;
+  font-family: inherit; font-size: 1.15rem; font-weight: 800; color: var(--text-d);
+  background: transparent; min-width: 0;
+  -moz-appearance: textfield;
+}
+.cal-stepper .sp-val::-webkit-outer-spin-button,
+.cal-stepper .sp-val::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+/* Native select shell */
+.select-shell {
+  position: relative;
+  border-radius: var(--r-lg);
+  border: 1.5px solid var(--border);
+  background: var(--white);
+  transition: border-color .18s, box-shadow .18s;
+}
+.select-shell:focus-within {
+  border-color: var(--olive-3);
+  box-shadow: 0 0 0 3px rgba(98,129,65,.1);
+}
+.select-native {
+  width: 100%;
+  min-height: 52px;
+  padding: 14px 44px 14px 16px;
+  border: none;
+  border-radius: var(--r-lg);
+  font-family: inherit;
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--text-d);
+  background: transparent;
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.select-shell::after {
+  content: '';
+  position: absolute; left: 18px; top: 50%;
+  width: 8px; height: 8px;
+  border-right: 2px solid var(--olive-2);
+  border-bottom: 2px solid var(--olive-2);
+  transform: translateY(-70%) rotate(45deg);
+  pointer-events: none;
+  opacity: 0.75;
+}
+
+/* Wide date picker */
+.form-group-date { margin-top: 4px; }
+.date-picker-wide {
+  min-height: 64px;
+  padding: 14px 18px;
+  border-radius: var(--r-lg);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.6);
+}
+.date-picker-wide .dp-main { font-size: 1.02rem; }
+.date-picker-wide .dp-sub { font-size: 0.76rem; }
+
+.form-actions-row {
+  display: flex; flex-direction: column; gap: 10px; margin-top: 8px;
+}
+.btn-secondary {
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: var(--r-pill);
+  border: 1.5px solid var(--border);
+  background: var(--bg);
+  color: var(--olive-2);
+  font-family: inherit; font-size: 0.92rem; font-weight: 800;
+  cursor: pointer;
+  transition: background .15s, border-color .15s, transform .1s;
+}
+.btn-secondary:active { transform: translateY(1px); background: #EDE8DC; }
+body.has-saved-state #btn-edit-settings { display: flex !important; align-items: center; justify-content: center; }
+
+/* ═══ Result cards (next receipt) ═══ */
+.rc-card {
+  background: var(--white);
+  border-radius: var(--r-xl);
+  padding: 18px 16px 16px;
+  margin-bottom: 14px;
+  box-shadow: var(--shadow-card);
+  border: 1px solid rgba(213,205,184,.45);
+}
+.rc-eyebrow {
+  font-size: 0.68rem; font-weight: 700; color: var(--text-l);
+  letter-spacing: 0.04em;
+  margin-bottom: 10px;
+  text-transform: none;
+}
+.rc-name-box {
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: var(--r-md);
+  background: linear-gradient(135deg, #F4F1E8 0%, #E8E4D8 100%);
+  border: 1px solid rgba(184,129,58,.22);
+  font-size: 1.12rem;
+  font-weight: 800;
+  color: var(--text-d);
+  text-align: center;
+  margin-bottom: 14px;
+  box-shadow: 0 2px 10px rgba(64,81,59,.06);
+}
+.rc-meta-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.rc-dates {
+  text-align: right;
+  flex: 1;
+  min-width: 0;
+}
+.rc-day { font-size: 0.95rem; font-weight: 800; color: var(--text-d); margin-bottom: 4px; }
+.rc-hijri { font-size: 0.82rem; font-weight: 700; color: var(--text-m); }
+.rc-greg { font-size: 0.74rem; color: var(--text-l); margin-top: 2px; font-weight: 500; }
+.rc-remain {
+  flex-shrink: 0;
+  padding: 10px 14px;
+  border-radius: var(--r-pill);
+  background: linear-gradient(135deg, #FFF6E8, #F8ECD4);
+  border: 1px solid rgba(184,129,58,.2);
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(184,129,58,.1);
+}
+.rc-remain strong {
+  display: block;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--gold-1);
+}
+.rc-remain span.lbl { font-size: 0.72rem; color: var(--text-m); font-weight: 600; margin-top: 2px; display: block; }
+
+/* Current period card */
+.rc-current {
+  background: linear-gradient(160deg, #354430 0%, #40513B 45%, #4E6147 100%);
+  color: #fff;
+  border: 1px solid rgba(255,255,255,.08);
+  box-shadow: 0 12px 36px rgba(41,61,37,.28);
+}
+.rc-current .rc-eyebrow { color: rgba(255,255,255,.65); }
+.rc-current .rc-name-box {
+  background: rgba(255,255,255,.12);
+  border-color: rgba(255,255,255,.2);
+  color: #fff;
+  box-shadow: none;
+}
+.rc-current .rc-day { color: #fff; }
+.rc-current .rc-hijri { color: rgba(255,255,255,.92); }
+.rc-current .rc-greg { color: rgba(255,255,255,.72); }
+.rc-current .rc-remain {
+  background: rgba(255,255,255,.14);
+  border-color: rgba(255,255,255,.22);
+}
+.rc-current .rc-remain strong { color: #FFD89B; }
+.rc-current .rc-remain span.lbl { color: rgba(255,255,255,.85); }
+
+.rc-progress {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255,255,255,.12);
+}
+.rc-current .progress-bar { background: rgba(255,255,255,.12); }
+.rc-current .progress-fill { background: linear-gradient(90deg, var(--gold-2), var(--gold-3)); }
+.rc-current .progress-info { color: rgba(255,255,255,.9); }
+.rc-current .stat-pill {
+  background: rgba(255,255,255,.1);
+  border: 1px solid rgba(255,255,255,.14);
+}
+.rc-current .stat-pill .num { color: #fff; }
+.rc-current .stat-pill .lbl { color: rgba(255,255,255,.82); }
+
+.next-recv.modern {
+  border-radius: var(--r-md);
+  padding: 12px 14px;
+  gap: 12px;
+  align-items: center;
+}
+.next-recv.modern .next-recv-info .lbl { font-size: 0.68rem; }
+.next-recv.modern .next-recv-num { display: none; }
+
 /* Responsive */
 @media (max-width: 380px) {
-  .app-header h1 { font-size: 1.25rem; }
+  .app-header h1 { font-size: 1.15rem; line-height: 1.35; }
   .container { padding: 0 10px; }
-  .card { padding: 18px 14px; }
+  .card, .form-card { padding: 18px 14px; }
+  .seg-btn { height: 46px; min-width: 44px; font-size: 0.92rem; }
+  .rc-meta-row { flex-direction: column; align-items: stretch; }
+  .rc-remain { align-self: center; }
   .upcoming-card { padding: 14px 12px; gap: 10px; }
   .squad-num { width: 46px; height: 46px; }
   .countdown { min-width: 58px; padding: 7px 10px; }
@@ -936,36 +1190,58 @@ select.input-shell {
 <body>
 
 <header class="app-header">
-  <h1>حاسبة مواعيد السرايا</h1>
-  <p>احسب مواعيد التسليم والاستلام بدقة</p>
+  <h1>احسب مواعيد استلام السرايا</h1>
+  <p>مواعيد الاستلام والتسليم — تقويم هجري وتذكّر تلقائي للدورات</p>
   <span class="badge">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-    حساب فوري بالتقويم الهجري
+    حفظ الإعدادات محلياً في جهازك
   </span>
 </header>
 
 <div class="container">
 
-  <!-- INPUTS CARD -->
-  <div class="card">
-    <div class="card-header">
-      <div class="card-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <rect x="3" y="4" width="18" height="18" rx="2"/>
-          <line x1="16" y1="2" x2="16" y2="6"/>
-          <line x1="8" y1="2" x2="8" y2="6"/>
-          <line x1="3" y1="10" x2="21" y2="10"/>
-        </svg>
-      </div>
-      <div class="card-title">
-        <h2>بيانات السرية الحالية</h2>
-        <p>أدخل تاريخ بداية الاستلام والمدة</p>
-      </div>
+  <div class="card form-card" id="form-card">
+    <div class="form-card-head">
+      <h2 class="form-card-title">المدخلات</h2>
+      <p class="form-card-sub">عدد السرايا، مدة الاستلام، السرية الحالية، ثم تاريخ بداية الاستلام الهجري</p>
     </div>
 
     <div class="form-group">
+      <label class="form-label">مجموع السرايا<span class="req">*</span></label>
+      <div class="seg-row" role="radiogroup" aria-label="مجموع السرايا">
+        <button type="button" class="seg-btn" data-total="1" onclick="setTotalSquads(1)">1</button>
+        <button type="button" class="seg-btn" data-total="2" onclick="setTotalSquads(2)">2</button>
+        <button type="button" class="seg-btn" data-total="3" onclick="setTotalSquads(3)">3</button>
+        <button type="button" class="seg-btn is-active" data-total="4" onclick="setTotalSquads(4)">4</button>
+        <button type="button" class="seg-btn" data-total="5" onclick="setTotalSquads(5)">5</button>
+      </div>
+      <input type="hidden" id="total-squads" value="4">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">عدد أيام الاستلام<span class="req">*</span></label>
+      <div class="stepper-pill cal-stepper">
+        <button type="button" class="sp-btn" onclick="step('duration', -1)" aria-label="نقصان يوم">
+          <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </button>
+        <input type="number" class="sp-val" id="duration" value="14" min="1" max="365" inputmode="numeric">
+        <button type="button" class="sp-btn" onclick="step('duration', 1)" aria-label="زيادة يوم">
+          <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </button>
+      </div>
+      <div class="hint">يوم لكل سرية ضمن دورة الاستلام</div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">السرية المستلمة الآن<span class="req">*</span></label>
+      <div class="select-shell">
+        <select class="select-native" id="current-squad"></select>
+      </div>
+    </div>
+
+    <div class="form-group form-group-date">
       <label class="form-label">تاريخ بداية الاستلام (هجري)<span class="req">*</span></label>
-      <button type="button" class="date-picker-btn" id="date-picker-btn" onclick="openCalendar()">
+      <button type="button" class="date-picker-btn date-picker-wide" id="date-picker-btn" onclick="openCalendar()">
         <span class="dp-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
             <rect x="4" y="5" width="16" height="16" rx="3"/>
@@ -975,7 +1251,7 @@ select.input-shell {
         </span>
         <span class="dp-text">
           <span class="dp-main" id="dp-main">اختر التاريخ</span>
-          <span class="dp-sub" id="dp-sub">اضغط لفتح التقويم</span>
+          <span class="dp-sub" id="dp-sub">اضغط لفتح التقويم الهجري</span>
         </span>
         <span class="dp-arrow">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
@@ -986,42 +1262,13 @@ select.input-shell {
       <input type="hidden" id="start-year">
     </div>
 
-    <div class="form-group">
-      <label class="form-label">عدد أيام الاستلام<span class="req">*</span></label>
-      <div class="stepper">
-        <button class="stepper-btn" onclick="step('duration', -1)" aria-label="نقص">
-          <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        </button>
-        <input type="number" class="stepper-val" id="duration" value="14" min="1" max="365" inputmode="numeric">
-        <button class="stepper-btn" onclick="step('duration', 1)" aria-label="زيادة">
-          <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        </button>
-      </div>
-      <div class="hint">يوم لكل سرية</div>
+    <div class="form-actions-row">
+      <button type="button" class="submit-btn" onclick="calculate()">
+        <svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        احسب المواعيد
+      </button>
+      <button type="button" class="btn-secondary" id="btn-edit-settings" style="display:none" onclick="editSettings()">تعديل الإعدادات</button>
     </div>
-
-    <div class="form-group">
-      <label class="form-label">إجمالي عدد السرايا<span class="req">*</span></label>
-      <div class="stepper">
-        <button class="stepper-btn" onclick="step('total-squads', -1, updateSquadOptions)" aria-label="نقص">
-          <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        </button>
-        <input type="number" class="stepper-val" id="total-squads" value="4" min="2" max="20" inputmode="numeric" oninput="updateSquadOptions()">
-        <button class="stepper-btn" onclick="step('total-squads', 1, updateSquadOptions)" aria-label="زيادة">
-          <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        </button>
-      </div>
-    </div>
-
-    <div class="form-group">
-      <label class="form-label">رقم السرية المستلمة حالياً<span class="req">*</span></label>
-      <select class="input-shell" id="current-squad"></select>
-    </div>
-
-    <button class="submit-btn" onclick="calculate()">
-      <svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-      احسب المواعيد
-    </button>
   </div>
 
   <!-- RESULTS -->
@@ -1287,6 +1534,101 @@ function fmtGreg(g) {
 }
 
 /* ============================================
+   PERSISTENCE + SEED SYNC
+============================================ */
+const LS_KEY = 'saraya_calc_v1';
+
+function applyHijriToPicker(h) {
+  document.getElementById('start-year').value = h.y;
+  document.getElementById('start-month').value = h.m;
+  document.getElementById('start-day').value = h.d;
+  const greg = hijriToGreg(h.y, h.m, h.d);
+  const btn = document.getElementById('date-picker-btn');
+  document.getElementById('dp-main').textContent = h.d + ' ' + HIJRI_MONTHS[h.m - 1] + ' ' + h.y + 'هـ';
+  document.getElementById('dp-sub').textContent = '✓ ' + WEEKDAYS[jdnToWeekday(hijriToJDN(h.y, h.m, h.d))] + ' — ' + fmtGreg(greg);
+  btn.classList.add('has-value');
+}
+
+function loadAndSyncPersistedState() {
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    if (!raw) return false;
+    const p = JSON.parse(raw);
+    if (p.seedJdn == null || !p.duration || !p.totalSquads || p.seedSquad == null) return false;
+
+    const now = new Date();
+    const todayJdn = gregToJDN(now.getFullYear(), now.getMonth() + 1, now.getDate());
+    let off = Math.floor((todayJdn - p.seedJdn) / p.duration);
+    if (off < 0) off = 0;
+
+    const T = Math.min(5, Math.max(1, parseInt(p.totalSquads, 10) || 4));
+    const newSquad = ((parseInt(p.seedSquad, 10) - 1 + off) % T) + 1;
+    const newStartJdn = p.seedJdn + off * p.duration;
+    const nh = jdnToHijri(newStartJdn);
+
+    setTotalSquads(T, false);
+    document.getElementById('duration').value = p.duration;
+    applyHijriToPicker(nh);
+    updateSquadOptions();
+    document.getElementById('current-squad').value = String(newSquad);
+
+    document.body.classList.add('has-saved-state');
+    const editBtn = document.getElementById('btn-edit-settings');
+    if (editBtn) editBtn.style.display = 'flex';
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+function savePersistedState() {
+  const startDay = parseInt(document.getElementById('start-day').value, 10);
+  const startMonth = parseInt(document.getElementById('start-month').value, 10);
+  const startYear = parseInt(document.getElementById('start-year').value, 10);
+  const duration = parseInt(document.getElementById('duration').value, 10);
+  const totalSquads = parseInt(document.getElementById('total-squads').value, 10);
+  const currentSquad = parseInt(document.getElementById('current-squad').value, 10);
+  if (!startDay || !startMonth || !startYear || !duration || !currentSquad) return;
+  const d = new Date();
+  const payload = {
+    seedJdn: hijriToJDN(startYear, startMonth, startDay),
+    seedSquad: currentSquad,
+    duration,
+    totalSquads,
+    savedAtJdn: gregToJDN(d.getFullYear(), d.getMonth() + 1, d.getDate())
+  };
+  try {
+    localStorage.setItem(LS_KEY, JSON.stringify(payload));
+  } catch (e) { /* quota */ }
+  document.body.classList.add('has-saved-state');
+  const editBtn = document.getElementById('btn-edit-settings');
+  if (editBtn) editBtn.style.display = 'flex';
+}
+
+function setTotalSquads(n, doUpdate) {
+  n = Math.min(5, Math.max(1, parseInt(n, 10) || 4));
+  document.getElementById('total-squads').value = String(n);
+  document.querySelectorAll('.seg-btn').forEach(function (b) {
+    b.classList.toggle('is-active', parseInt(b.dataset.total, 10) === n);
+  });
+  if (doUpdate !== false) updateSquadOptions();
+}
+
+function editSettings() {
+  const fc = document.getElementById('form-card');
+  if (!fc) return;
+  fc.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  fc.classList.add('form-highlight');
+  setTimeout(function () { fc.classList.remove('form-highlight'); }, 1100);
+}
+
+function remainPhrase(days) {
+  if (days <= 0) return '0 أيام';
+  if (days === 1) return 'يوم واحد';
+  return days + ' أيام';
+}
+
+/* ============================================
    UI LOGIC
 ============================================ */
 
@@ -1303,18 +1645,26 @@ function step(id, delta, callback) {
 }
 
 function updateSquadOptions() {
-  const total = parseInt(document.getElementById('total-squads').value, 10) || 4;
+  const total = Math.min(5, Math.max(1, parseInt(document.getElementById('total-squads').value, 10) || 4));
   const select = document.getElementById('current-squad');
   const ordinals = ['الأولى','الثانية','الثالثة','الرابعة','الخامسة','السادسة','السابعة','الثامنة','التاسعة','العاشرة','الحادية عشرة','الثانية عشرة','الثالثة عشرة','الرابعة عشرة','الخامسة عشرة','السادسة عشرة','السابعة عشرة','الثامنة عشرة','التاسعة عشرة','العشرون'];
-  const prev = parseInt(select.value, 10) || 1;
+  const prevRaw = select.value;
   select.innerHTML = '';
+  const ph = document.createElement('option');
+  ph.value = '';
+  ph.textContent = 'اختر السرية…';
+  select.appendChild(ph);
   for (let i = 1; i <= total; i++) {
     const opt = document.createElement('option');
-    opt.value = i;
+    opt.value = String(i);
     opt.textContent = 'السرية ' + (ordinals[i - 1] || i);
     select.appendChild(opt);
   }
-  if (prev <= total) select.value = prev;
+  if (prevRaw !== '' && parseInt(prevRaw, 10) >= 1 && parseInt(prevRaw, 10) <= total) {
+    select.value = prevRaw;
+  } else {
+    select.value = '';
+  }
 }
 
 function ordinalSquad(i) {
@@ -1328,15 +1678,24 @@ function calculate() {
   const startYear  = parseInt(document.getElementById('start-year').value, 10);
   const duration   = parseInt(document.getElementById('duration').value, 10);
   const totalSquads = parseInt(document.getElementById('total-squads').value, 10);
-  const currentSquad = parseInt(document.getElementById('current-squad').value, 10);
+  const squadRaw = document.getElementById('current-squad').value;
+  const currentSquad = parseInt(squadRaw, 10);
 
   /* Validation */
   if (!startDay || !startMonth || !startYear || !duration) {
     alert('يرجى تعبئة جميع الحقول المطلوبة');
     return;
   }
+  if (squadRaw === '' || isNaN(currentSquad) || currentSquad < 1) {
+    alert('يرجى اختيار السرية المستلمة حالياً من القائمة');
+    return;
+  }
   if (startDay < 1 || startDay > 30 || startMonth < 1 || startMonth > 12) {
     alert('تاريخ غير صحيح، الرجاء التحقق');
+    return;
+  }
+  if (currentSquad > totalSquads) {
+    alert('رقم السرية يتجاوز مجموع السرايا المحدد');
     return;
   }
 
@@ -1399,6 +1758,8 @@ function calculate() {
 
   renderUpcoming(upcoming);
 
+  savePersistedState();
+
   /* Show results */
   document.getElementById('results').classList.add('show');
   setTimeout(() => {
@@ -1411,28 +1772,27 @@ function renderCurrent(data) {
   const passed = Math.min(data.daysPassed, total);
   const pct = Math.max(0, Math.min(100, (passed / total) * 100));
 
-  let statusBadge = 'مستلمة حالياً';
-  if (data.daysRemaining === 0) statusBadge = 'انتهت اليوم';
-  else if (data.daysPassed < 0) statusBadge = 'قادمة';
+  let statusNote = 'مستلمة حالياً';
+  if (data.daysRemaining === 0) statusNote = 'تنتهي فترة الاستلام اليوم';
+  else if (data.daysPassed < 0) statusNote = 'فترة استلام قادمة';
 
   const html = `
-    <div class="current-card">
-      <span class="current-badge">${statusBadge}</span>
-      <h3>السرية ${ordinalSquad(data.squadNum)}</h3>
-
-      <div class="date-block">
-        <div class="date-block-label">📅 تاريخ بدء الاستلام</div>
-        <div class="date-block-main">${fmtHijri(data.startHijri)}</div>
-        <div class="date-block-sub">${fmtGreg(data.startGreg)}</div>
+    <div class="rc-card rc-current">
+      <div class="rc-eyebrow">فترة الاستلام الحالية — ${statusNote}</div>
+      <div class="rc-name-box">السرية ${ordinalSquad(data.squadNum)}</div>
+      <div class="rc-meta-row">
+        <div class="rc-dates">
+          <div class="rc-day">${data.endWeekday}</div>
+          <div class="rc-hijri">${fmtHijri(data.endHijri)}</div>
+          <div class="rc-greg">${fmtGreg(data.endGreg)}</div>
+        </div>
+        <div class="rc-remain">
+          <strong>المتبقي: ${remainPhrase(data.daysRemaining)}</strong>
+          <span class="lbl">حتى التسليم</span>
+        </div>
       </div>
-
-      <div class="date-block">
-        <div class="date-block-label">🏁 تاريخ التسليم القادم</div>
-        <div class="date-block-main">${fmtHijri(data.endHijri)} — ${data.endWeekday}</div>
-        <div class="date-block-sub">${fmtGreg(data.endGreg)}</div>
-      </div>
-
-      <div class="progress-wrap">
+      <p style="font-size:0.72rem;opacity:.75;margin:10px 0 0;text-align:center;">بدء الاستلام: ${fmtHijri(data.startHijri)} — ${fmtGreg(data.startGreg)}</p>
+      <div class="rc-progress progress-wrap">
         <div class="progress-info">
           <span>التقدم</span>
           <span>${Math.round(pct)}%</span>
@@ -1455,9 +1815,8 @@ function renderCurrent(data) {
   `;
   document.getElementById('current-output').innerHTML = html;
 
-  /* Animate progress */
   setTimeout(() => {
-    const fill = document.querySelector('.progress-fill');
+    const fill = document.querySelector('.rc-current .progress-fill');
     if (fill) fill.style.width = pct + '%';
   }, 200);
 }
@@ -1476,42 +1835,39 @@ function renderUpcoming(squads) {
 
   wrap.innerHTML = squads.map((s, idx) => {
     const first = s.receipts[0];
-    const next2 = s.receipts.slice(1); /* receipts 2 & 3 */
+    const next2 = s.receipts.slice(1);
 
     const moreHtml = next2.map((r, i) => `
-      <div class="next-recv">
-        <div class="next-recv-num">${i + 2}</div>
-        <div class="next-recv-info">
-          <div class="lbl">الاستلام ${i === 0 ? 'الثاني' : 'الثالث'} — ${r.weekday}</div>
-          <div class="date">${fmtHijri(r.hijri)}</div>
+      <div class="next-recv modern">
+        <div class="next-recv-info" style="flex:1;">
+          <div class="lbl">الاستلام ${i === 0 ? 'الثاني' : 'الثالث'}</div>
+          <div class="date">${r.weekday} — ${fmtHijri(r.hijri)}</div>
           <div class="greg">${fmtGreg(r.greg)}</div>
         </div>
-        <div class="next-recv-days">
-          <div class="n">${r.daysLeft}</div>
-          <div class="l">يوم</div>
+        <div class="rc-remain" style="min-width:100px;">
+          <strong>المتبقي: ${remainPhrase(r.daysLeft)}</strong>
+          <span class="lbl">حتى الاستلام</span>
         </div>
       </div>
     `).join('');
 
     return `
-      <div class="card" style="padding:18px 16px;">
-        <div style="display:flex;align-items:center;gap:14px;">
-          <div class="squad-num">
-            <div class="n">${s.squadNum}</div>
-            <div class="lbl">سرية</div>
+      <div class="rc-card">
+        <div class="rc-eyebrow">موعد الاستلام القادم</div>
+        <div class="rc-name-box">السرية ${ordinalSquad(s.squadNum)}</div>
+        <div class="rc-meta-row">
+          <div class="rc-dates">
+            <div class="rc-day">${first.weekday}</div>
+            <div class="rc-hijri">${fmtHijri(first.hijri)}</div>
+            <div class="rc-greg">${fmtGreg(first.greg)}</div>
           </div>
-          <div class="squad-info">
-            <div class="squad-name">السرية ${ordinalSquad(s.squadNum)} — ${first.weekday}</div>
-            <div class="squad-date">${fmtHijri(first.hijri)}</div>
-            <div class="squad-date-greg">${fmtGreg(first.greg)}</div>
-          </div>
-          <div class="countdown">
-            <div class="days">${first.daysLeft}</div>
-            <div class="lbl">يوم</div>
+          <div class="rc-remain">
+            <strong>المتبقي: ${remainPhrase(first.daysLeft)}</strong>
+            <span class="lbl">حتى الاستلام</span>
           </div>
         </div>
 
-        <button class="more-receipts-toggle" onclick="toggleAccordion(this)">
+        <button type="button" class="more-receipts-toggle" onclick="toggleAccordion(this)">
           <span>عرض الاستلامات القادمة</span>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
         </button>
@@ -1533,17 +1889,20 @@ function toggleAccordion(btn) {
   btn.querySelector('span').textContent = isOpen ? 'إخفاء الاستلامات القادمة' : 'عرض الاستلامات القادمة';
 }
 
-/* Init */
 updateSquadOptions();
 
-/* Pre-fill today's hijri date as default */
-window.addEventListener('DOMContentLoaded', () => {
+window.addEventListener('DOMContentLoaded', function () {
+  const hadSave = loadAndSyncPersistedState();
   const dayEl = document.getElementById('start-day');
-  if (!dayEl.value) {
+  if (!hadSave && !dayEl.value) {
     const now = new Date();
     const h = gregToHijri(now.getFullYear(), now.getMonth() + 1, now.getDate());
     calState.selected = { y: h.y, m: h.m, d: h.d };
     confirmCalendar();
+  }
+  if (hadSave) {
+    const sel = document.getElementById('current-squad').value;
+    if (sel) calculate();
   }
 });
 </script>
