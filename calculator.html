@@ -636,12 +636,13 @@ select.input-shell {
 .cal-overlay.show { display: flex; opacity: 1; }
 
 .cal-modal {
-  background: var(--white);
+  background: #fafbfa;
+  border: 1px solid rgba(41, 61, 37, 0.08);
   border-radius: var(--r-xl);
   width: 100%;
   max-width: 380px;
   padding: 16px 12px 18px;
-  box-shadow: 0 12px 40px rgba(0,0,0,.25);
+  box-shadow: 0 16px 48px rgba(0,0,0,.12);
   transform: scale(.92);
   opacity: 0;
   transition: transform .35s cubic-bezier(.34,1.16,.64,1), opacity .25s ease;
@@ -658,17 +659,17 @@ select.input-shell {
 }
 .cal-nav {
   width: 38px; height: 38px;
-  border: none;
-  background: var(--bg);
+  border: 1px solid rgba(41, 61, 37, 0.12);
+  background: #fff;
   border-radius: 12px;
   color: var(--olive-2);
   cursor: pointer;
   display: flex; align-items: center; justify-content: center;
-  transition: background .15s, transform .1s;
+  transition: background .15s, border-color .15s, transform .1s;
   flex-shrink: 0;
 }
 .cal-nav:active { transform: scale(.92); }
-.cal-nav:hover { background: var(--beige); }
+.cal-nav:hover { background: #f4f5f3; border-color: rgba(41, 61, 37, 0.2); }
 .cal-nav svg { width: 18px; height: 18px; }
 
 .cal-title { flex: 1; text-align: center; }
@@ -679,9 +680,10 @@ select.input-shell {
 }
 .cal-title-sub {
   font-size: 0.72rem;
-  color: #A68B5B;
-  font-weight: 600;
+  color: var(--olive-3);
+  font-weight: 700;
   margin-top: 2px;
+  letter-spacing: 0.02em;
 }
 
 .cal-year-row {
@@ -743,8 +745,8 @@ select.input-shell {
   gap: 0;
   cursor: pointer;
   border: 1.5px solid transparent;
-  background: var(--bg);
-  transition: background .15s, border-color .15s, transform .1s, color .15s;
+  background: #fff;
+  transition: background .15s, border-color .15s, box-shadow .15s, transform .1s, color .15s;
   padding: 2px;
   user-select: none;
   -webkit-user-select: none;
@@ -756,8 +758,8 @@ select.input-shell {
   pointer-events: none;
 }
 .cal-cell:not(.empty):hover {
-  background: var(--beige);
-  border-color: var(--gold-2);
+  background: #f0f2ef;
+  border-color: rgba(64, 81, 59, 0.15);
 }
 .cal-cell:not(.empty):active { transform: scale(.94); }
 .cal-cell .cal-day-num {
@@ -766,27 +768,32 @@ select.input-shell {
   color: var(--text-d);
   line-height: 1;
 }
-.cal-cell.today {
-  background: linear-gradient(145deg, #1B6B4A 0%, #2D8A5E 100%);
-  border: 3px solid #0F3D28 !important;
-  color: #fff;
+/* اليوم الفعلي — إطار ذهبي واضح، يختلف عن التاريخ المحدد */
+.cal-cell.today:not(.selected) {
+  background: #fff;
+  border: 3px solid var(--gold-2) !important;
   box-shadow:
-    0 0 0 2px rgba(149,213,178,.95),
-    0 6px 22px rgba(15,61,40,.45);
+    0 0 0 1px rgba(204, 145, 72, 0.35),
+    0 4px 14px rgba(184, 129, 58, 0.2);
 }
-.cal-cell.today .cal-day-num { color: #fff; }
+.cal-cell.today:not(.selected) .cal-day-num { color: var(--olive-1); }
+.cal-cell.today:not(.selected) .cal-today-lbl { color: var(--gold-1); }
+/* التاريخ المحدد (وليس اليوم) — زيتي غامق */
 .cal-cell.selected:not(.today) {
   background: linear-gradient(135deg, var(--olive-2), var(--olive-4));
-  box-shadow: 0 4px 12px rgba(64,81,59,.3);
+  box-shadow: 0 4px 12px rgba(64,81,59,.28);
   border-color: transparent;
 }
 .cal-cell.selected:not(.today) .cal-day-num { color: #fff; }
+/* اليوم وهو المحدد — زيتي + إطار ذهبي عريض */
 .cal-cell.today.selected {
+  background: linear-gradient(135deg, var(--olive-2), var(--olive-4));
+  border: 3px solid var(--gold-2) !important;
   box-shadow:
-    0 0 0 2px #FFD166,
-    0 0 0 4px rgba(27,107,74,.4),
-    0 8px 24px rgba(15,61,40,.5);
+    0 0 0 2px rgba(221, 158, 89, 0.45),
+    0 6px 18px rgba(64, 81, 59, 0.35);
 }
+.cal-cell.today.selected .cal-day-num { color: #fff; }
 .cal-cell .cal-today-lbl {
   font-size: 0.55rem;
   font-weight: 800;
@@ -794,7 +801,7 @@ select.input-shell {
   letter-spacing: 0.04em;
   line-height: 1;
 }
-.cal-cell.today .cal-today-lbl { color: rgba(255,255,255,.95); }
+.cal-cell.today.selected .cal-today-lbl { color: rgba(255, 248, 220, 0.95); }
 
 .cal-footer {
   display: flex;
@@ -1257,62 +1264,109 @@ body.has-saved-state #btn-edit-settings { display: flex !important; align-items:
   text-shadow: 0 1px 2px rgba(0,0,0,.18);
 }
 
-/* بطاقات الاستلام القادم — لوحة ألوان مميزة (أزرق–رمادي) عن الزيتي */
+/* بطاقات السرايا القادمة — بيج فاتح → أبيض، نص زيتي، بدون أزرق */
 .rc-card.rc-card-upcoming {
-  background: linear-gradient(168deg, #f2f6fb 0%, #e8eef6 45%, #e2eaf3 100%);
-  border: 1px solid rgba(95, 130, 170, 0.28);
-  box-shadow: 0 10px 32px rgba(55, 85, 120, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.7);
+  background: linear-gradient(165deg, #faf9f6 0%, #f7f6f2 38%, #ffffff 100%);
+  border: 1px solid rgba(41, 61, 37, 0.1);
+  box-shadow: 0 10px 36px rgba(41, 61, 37, 0.06), 0 1px 0 rgba(255, 255, 255, 0.9) inset;
 }
 .rc-card.rc-card-upcoming .rc-name-box {
   margin-bottom: 12px;
-  background: linear-gradient(135deg, #dce6f2 0%, #cfdcea 100%);
-  border: 1px solid rgba(80, 115, 155, 0.28);
-  color: #2a3d52;
-  box-shadow: 0 4px 16px rgba(60, 90, 130, 0.08);
+  background: linear-gradient(180deg, #fdfcfa 0%, #f5f4f0 100%);
+  border: 1px solid rgba(41, 61, 37, 0.12);
+  color: var(--olive-1);
+  box-shadow: 0 2px 12px rgba(41, 61, 37, 0.05);
 }
-.rc-card.rc-card-upcoming .rc-eyebrow { color: #5a6e82; }
-.rc-up-glass {
-  background: rgba(255, 255, 255, 0.52);
-  border: 1px solid rgba(110, 145, 185, 0.38);
-  border-radius: var(--r-md);
+.rc-card.rc-card-upcoming .rc-eyebrow { color: var(--olive-3); }
+.rc-card.rc-card-upcoming .rc-up-glass {
+  background: #ffffff;
+  border: 1px solid rgba(41, 61, 37, 0.08);
+  border-radius: 14px;
   padding: 14px 16px;
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   box-shadow:
-    0 10px 32px rgba(55, 95, 140, 0.12),
-    inset 0 1px 0 rgba(255, 255, 255, 0.95),
-    inset 0 -1px 0 rgba(120, 150, 190, 0.08);
+    0 4px 22px rgba(41, 61, 37, 0.06),
+    0 1px 0 rgba(255, 255, 255, 1) inset,
+    inset 0 -1px 0 rgba(41, 61, 37, 0.04);
   margin-bottom: 12px;
 }
-.rc-up-glass .gl-label { font-size: 0.64rem; font-weight: 700; color: #5a6e82; margin-bottom: 4px; }
-.rc-up-glass .gl-main { font-size: 0.9rem; font-weight: 800; color: #243547; line-height: 1.35; }
-.rc-up-glass .gl-sub { font-size: 0.74rem; color: #3d566d; margin-top: 4px; font-weight: 600; }
-.rc-up-glass .gl-hijri { font-size: 0.7rem; color: #4a6680; margin-top: 3px; font-weight: 600; }
-.rc-up-glass .gl-end {
-  font-size: 0.73rem; color: #4d6278; margin-top: 10px; padding-top: 10px;
-  border-top: 1px dashed rgba(110, 145, 185, 0.45); font-weight: 600; line-height: 1.5;
+.rc-card.rc-card-upcoming .rc-up-glass .gl-label {
+  font-size: 0.64rem;
+  font-weight: 700;
+  color: var(--olive-3);
+  margin-bottom: 4px;
 }
-.rc-up-glass .gl-end-hijri { font-size: 0.66rem; color: #5a6e82; margin-top: 4px; font-weight: 600; }
+.rc-card.rc-card-upcoming .rc-up-glass .gl-main {
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: var(--olive-1);
+  line-height: 1.35;
+}
+.rc-card.rc-card-upcoming .rc-up-glass .gl-sub {
+  font-size: 0.74rem;
+  color: var(--olive-2);
+  margin-top: 4px;
+  font-weight: 600;
+}
+.rc-card.rc-card-upcoming .rc-up-glass .gl-hijri {
+  font-size: 0.7rem;
+  color: var(--olive-3);
+  margin-top: 3px;
+  font-weight: 600;
+}
+.rc-card.rc-card-upcoming .rc-up-glass .gl-end {
+  font-size: 0.73rem;
+  color: var(--olive-2);
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed rgba(64, 81, 59, 0.22);
+  font-weight: 600;
+  line-height: 1.5;
+}
+.rc-card.rc-card-upcoming .rc-up-glass .gl-end-hijri {
+  font-size: 0.66rem;
+  color: var(--olive-3);
+  margin-top: 4px;
+  font-weight: 600;
+}
 .rc-card-upcoming .rc-remain-one {
-  color: #2c5282;
+  color: var(--olive-1);
   text-shadow: none;
   margin: 4px 0 10px;
   font-size: 0.92rem;
 }
+.rc-card-upcoming .more-receipts-toggle {
+  background: rgba(255, 255, 255, 0.75);
+  border-color: rgba(64, 81, 59, 0.18);
+  color: var(--olive-2);
+}
+.rc-card-upcoming .more-receipts-toggle:hover {
+  background: var(--olive-2);
+  color: #fff;
+  border-color: var(--olive-2);
+}
 .more-receipts-toggle.past-toggle {
   margin-top: 6px;
-  background: #e4ecf6;
-  border-color: rgba(95, 130, 170, 0.35);
-  color: #2c5282;
+  background: rgba(255, 255, 255, 0.65);
+  border-color: rgba(64, 81, 59, 0.22);
+  color: var(--olive-2);
 }
 .more-receipts-toggle.past-toggle:hover {
-  background: #2c5282;
+  background: var(--olive-2);
   color: #fff;
-  border-color: #2c5282;
+  border-color: var(--olive-2);
 }
-.next-recv.past-row {
-  background: linear-gradient(135deg, #e8eef6, #dfe8f2);
-  border: 1px dashed rgba(95, 130, 170, 0.4);
+.rc-card-upcoming .next-recv.past-row {
+  background: linear-gradient(135deg, #f6f7f4, #eceee9);
+  border: 1px dashed rgba(64, 81, 59, 0.28);
+}
+.rc-card-upcoming .upcoming-recv-remain {
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: var(--olive-2);
+  line-height: 1.35;
+  display: block;
 }
 
 /* Responsive */
@@ -1340,7 +1394,7 @@ body.has-saved-state #btn-edit-settings { display: flex !important; align-items:
 
 <header class="app-header">
   <h1>مواعيد استلام السرايا</h1>
-  <p>مواعيد الاستلام والتسليم للسرايا - تذكّر تلقائي -</p>
+  <p>حاسبة مواعيد الاستلام والتسليم للسرايا - تذكّر تلقائي -</p>
   <span class="badge">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
     حفظ الإعدادات محلياً في جهازك
@@ -1379,7 +1433,6 @@ body.has-saved-state #btn-edit-settings { display: flex !important; align-items:
           <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
         </button>
       </div>
-      <div class="hint">يوم لكل سرية ضمن دورة الاستلام</div>
     </div>
 
     <div class="form-group">
@@ -1559,7 +1612,7 @@ function renderCalendar() {
   const dim = daysInGregorianMonth(y, m);
 
   document.getElementById('cal-title-main').textContent = GREG_MONTHS[m - 1] + ' ' + y;
-  document.getElementById('cal-title-sub').textContent = '';
+  document.getElementById('cal-title-sub').textContent = 'تقويم ميلادي';
 
   const grid = document.getElementById('cal-grid');
   grid.innerHTML = '';
@@ -2015,7 +2068,7 @@ function renderUpcoming(squads) {
           <div class="greg" style="font-size:0.66rem;margin-top:2px;">${fmtHijri(rEndH)}</div>
         </div>
         <div style="min-width:108px;text-align:center;align-self:center;">
-          <span style="font-size:0.78rem;font-weight:800;color:#2c5282;line-height:1.35;display:block;">${remainOnReceipt(r.daysLeft)}</span>
+          <span class="upcoming-recv-remain">${remainOnReceipt(r.daysLeft)}</span>
         </div>
       </div>`;
     }).join('');
