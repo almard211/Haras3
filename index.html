@@ -758,6 +758,19 @@ body {
   display: flex; align-items: center; justify-content: space-between; padding: 11px 15px;
 }
 .ctrl-row + .ctrl-row { border-top: 1px solid var(--grey-1); }
+/* Safari iOS يضيف تاريخ/رابط من واجهة الطباعة — لا يمكن إلغاؤه بالـ CSS؛ نعرض تذكيراً للمستخدم */
+.ios-print-tip {
+  display: none;
+  margin: 0 15px 12px;
+  padding: 8px 10px;
+  font-size: .72rem;
+  line-height: 1.45;
+  color: var(--text-b);
+  background: var(--gold-bg);
+  border-radius: var(--r-md);
+  border: 1px solid rgba(230,126,34,.22);
+}
+html.ios-safari body.preview-open .ios-print-tip { display: block; }
 .ctrl-label { font-size: .86rem; font-weight: 800; color: var(--text-h); }
 .ctrl-label small { display: block; font-size: .68rem; color: var(--text-s); font-weight: 500; margin-top: 1px; }
 .ctrl-btns { display: flex; gap: 8px; }
@@ -1358,6 +1371,7 @@ table.doc tbody { page-break-inside: avoid; break-inside: avoid; }
         <button class="icon-btn" title="مشاركة كملف Word" onclick="shareScheduleWord()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><text x="12" y="17" text-anchor="middle" font-size="6" font-weight="bold" fill="currentColor" stroke="none">W</text></svg></button>
       </div>
     </div>
+    <p class="ios-print-tip" role="note">عند الطباعة من آيفون أو آيباد: في شاشة الطباعة اضغط <strong>خيارات</strong> أسفل المعاينة، ثم عطّل <strong>الترويسات والتذييلات</strong> لإخفاء التاريخ والرابط (لا يمكن للموقع إخفاءهما تلقائياً).</p>
     <div class="ctrl-row" id="inv-ctrl-row" style="display:none;">
       <div class="ctrl-label">جرد العهد <small>تنزيل أو مشاركة النماذج</small></div>
       <div class="ctrl-btns">
@@ -1391,10 +1405,11 @@ table.doc tbody { page-break-inside: avoid; break-inside: avoid; }
 
 
 <script>
-
-
-
-
+(function () {
+  if (/iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream) {
+    document.documentElement.classList.add('ios-safari');
+  }
+})();
 
 /* ─── STEPPER HELPER ─── */
 function stepNum(id, delta, callback, mn, mx) {
@@ -2050,6 +2065,7 @@ function generate(){
 
   var ps=document.getElementById('preview-section');
   ps.style.display='block';
+  document.body.classList.add('preview-open');
   setTimeout(function(){ps.scrollIntoView({behavior:'smooth',block:'start'});},100);
 }
 
@@ -2360,6 +2376,14 @@ function buildInventoryHtml() {
    PDF HELPERS
 ═══════════════════════════════════ */
 
+/* html2canvas يصوّر DOM كصورة: رفع scale يحسّن حدة النص عند الطباعة من PDF (حجم ملف أكبر وتوليد أبطأ قليلاً) */
+var PDF_HTML2CANVAS_SCALE = 4;
+
+function _printDocTitle(s) {
+  if (s == null || s === '') return 'كشف الخفارات';
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '').replace(/>/g, '').replace(/"/g, '');
+}
+
 /* Inventory PDF: capture each day separately for correct pagination */
 function _inventoryToPdf(htmlStr, callback) {
   var base = window.location.href.replace(/\/[^\/]*$/, '/');
@@ -2431,7 +2455,7 @@ function _inventoryToPdf(htmlStr, callback) {
         }
 
         html2canvas(pages[i], {
-          scale: 3,
+          scale: PDF_HTML2CANVAS_SCALE,
           useCORS: true,
           allowTaint: true,
           backgroundColor: '#ffffff',
@@ -2711,7 +2735,7 @@ function _renderMultiPagePdf(doc, iframe, callback) {
     doc.body.appendChild(holder);
 
     html2canvas(pageEl, {
-      scale: 3, useCORS: true, allowTaint: true,
+      scale: PDF_HTML2CANVAS_SCALE, useCORS: true, allowTaint: true,
       backgroundColor: '#ffffff', width: 794, windowWidth: 794, logging: false
     }).then(function(canvas) {
       var imgData = canvas.toDataURL('image/png');
@@ -2734,7 +2758,7 @@ function _renderMultiPagePdf(doc, iframe, callback) {
 /* Fallback: capture the entire body as one image and slice it */
 function _captureWholeBody(doc, iframe, pdf, marginX, marginY, imgW, pageMaxH_mm, callback) {
   html2canvas(doc.body, {
-    scale: 3, useCORS: true, allowTaint: true,
+    scale: PDF_HTML2CANVAS_SCALE, useCORS: true, allowTaint: true,
     backgroundColor: '#ffffff', width: 794, windowWidth: 794
   }).then(function(canvas) {
     var imgData = canvas.toDataURL('image/png');
@@ -3124,8 +3148,7 @@ function shareInventory() {
 }
 
 /* ─────────────────────────────────────────────
-   Unified print: GUARANTEES identical output across
-   print / download / share buttons on every device.
+   Unified print: vector HTML via hidden iframe + print().
 
    • Android / Desktop:  use hidden iframe + window.print()
                          (browser print engine works perfectly there)
@@ -3252,6 +3275,7 @@ function printSchedule() {
   var fullHTML = '<!DOCTYPE html><html dir="rtl" lang="ar"><head>' +
     '<meta charset="UTF-8">' +
     '<meta name="viewport" content="width=device-width,initial-scale=1">' +
+    '<title>' + _printDocTitle(titleText) + '</title>' +
     '<base href="' + base + '">' +
     '<style>' + fontFaceCSS + css + '</style>' +
     '</head><body>' + pagesHTML + '</body></html>';
@@ -3397,7 +3421,7 @@ function buildSchedulePrintHtml(title, sub, tbl, ftr) {
 
   return '<!DOCTYPE html><html lang="ar" dir="rtl"><head>' +
     '<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">' +
-    '<meta name="color-scheme" content="light"><title>' + title + '</title>' +
+    '<meta name="color-scheme" content="light"><title>' + _printDocTitle(title) + '</title>' +
     '<style>' + fontFaces + SCHEDULE_OUTPUT_CSS + '</style></head><body>' +
     '<h2>' + title + '</h2><p class="sub">' + sub + '</p>' +
     (tblClone ? tblClone.outerHTML : '') +
@@ -3408,6 +3432,7 @@ function buildSchedulePrintHtml(title, sub, tbl, ftr) {
 
 function backToForm() {
   document.getElementById('preview-section').style.display='none';
+  document.body.classList.remove('preview-open');
   window.scrollTo(0,0);
 }
 
