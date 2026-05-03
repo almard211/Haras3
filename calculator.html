@@ -123,6 +123,30 @@ body {
   position: relative;
 }
 
+/* لوحة بيضاء موحّدة: المدخلات + النتائج */
+.main-white-board {
+  background-color: #ffffff;
+  border-radius: 24px;
+  padding: 24px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  width: 100%;
+  box-sizing: border-box;
+  margin-bottom: 14px;
+}
+.main-white-board .form-card {
+  padding: 0;
+  margin: 0;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+.main-white-board .form-actions-row {
+  margin-bottom: 14px;
+}
+.main-white-board:has(.results-section.show) .form-actions-row {
+  margin-bottom: 30px;
+}
+
 /* === CARDS === */
 .card {
   background: var(--white);
@@ -289,12 +313,29 @@ select.input-shell {
 .submit-btn svg { width: 20px; height: 20px; stroke: currentColor; stroke-width: 2.5; fill: none; stroke-linecap: round; stroke-linejoin: round; }
 
 /* === RESULTS === */
+#resultsArea {
+  max-width: 100%;
+  box-sizing: border-box;
+}
 .results-section {
-  margin-top: 22px;
+  padding: 0;
   display: none;
   animation: fadeUp .4s ease;
 }
 .results-section.show { display: block; }
+.main-white-board .section-title {
+  margin: 16px 0 12px;
+}
+.main-white-board .section-title:first-of-type {
+  margin-top: 0;
+}
+.result-card {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  margin-bottom: 20px;
+  border-radius: 16px;
+}
 
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(12px); }
@@ -715,6 +756,15 @@ select.input-shell {
 }
 .cal-year-btn svg { width: 12px; height: 12px; }
 
+/* منطقة أيام الشهر — بيج خفيف خلف التواريخ */
+.cal-dates-wrap {
+  background: #f7f4ee;
+  border-radius: 14px;
+  padding: 10px 6px 12px;
+  margin-bottom: 4px;
+  border: 1px solid rgba(213, 205, 184, 0.45);
+}
+
 .cal-weekdays {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
@@ -744,14 +794,14 @@ select.input-shell {
   justify-content: center;
   gap: 0;
   cursor: pointer;
-  border: 1px solid rgba(41, 61, 37, 0.08);
-  background: #f3f4f6;
+  border: 1px solid rgba(41, 61, 37, 0.07);
+  background: #faf9f7;
   transition: background .15s, border-color .15s, box-shadow .15s, transform .1s, color .15s;
   padding: 2px;
   user-select: none;
   -webkit-user-select: none;
   position: relative;
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.85) inset;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.9) inset;
 }
 .cal-cell.empty {
   background: transparent;
@@ -761,8 +811,8 @@ select.input-shell {
   pointer-events: none;
 }
 .cal-cell:not(.empty):hover {
-  background: #e8eaed;
-  border-color: rgba(64, 81, 59, 0.14);
+  background: #f0ede6;
+  border-color: rgba(64, 81, 59, 0.12);
 }
 .cal-cell:not(.empty):active { transform: scale(.94); }
 .cal-cell .cal-day-num {
@@ -771,42 +821,50 @@ select.input-shell {
   color: var(--text-d);
   line-height: 1;
 }
-/* تمييز تاريخ اليوم الفعلي (منفصل عن التاريخ المحدد زيتياً) */
-.cal-cell.today-highlight {
-  border: 2px solid #d97706;
-  background-color: #fef3c7;
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.65) inset;
+/* اليوم الحالي — دائماً واضح؛ عند التحديد يبقى البيج مع إطار زيتي + خط ذهبي داخلي */
+.cal-cell.is-today {
+  border: 2px solid #d97706 !important;
+  background-color: #fef3c7 !important;
+  background-image: none !important;
+  color: #1f2937 !important;
+  font-weight: 800;
+  z-index: 2;
+  position: relative;
+  box-shadow:
+    0 0 0 1px rgba(254, 243, 199, 0.95),
+    0 4px 12px rgba(217, 119, 6, 0.2) !important;
 }
-.cal-cell.today-highlight .cal-day-num {
-  color: #1f2937;
+.cal-cell.is-today .cal-day-num,
+.cal-cell.is-today .cal-today-lbl {
+  color: #1f2937 !important;
   font-weight: 800;
 }
-.cal-cell.today-highlight .cal-today-lbl {
-  color: #92400e;
-  font-weight: 800;
-}
-.cal-cell.today-highlight:not(.selected):hover {
-  background-color: #fde68a;
-  border-color: #b45309;
+.cal-cell.is-today:not(.selected):hover {
+  background-color: #fde68a !important;
+  border-color: #b45309 !important;
 }
 /* التاريخ المحدد وليس اليوم — زيتي */
-.cal-cell.selected:not(.today-highlight) {
+.cal-cell.selected:not(.is-today) {
   background: linear-gradient(135deg, var(--olive-2), var(--olive-4));
   box-shadow: 0 4px 12px rgba(64, 81, 59, 0.28);
   border-color: transparent;
 }
-.cal-cell.selected:not(.today-highlight) .cal-day-num { color: #fff; }
-.cal-cell.selected:not(.today-highlight) .cal-today-lbl { display: none; }
-/* اليوم الفعلي وهو أيضاً المحدد — زيتي مع إطار برتقالي يبقي تمييز «اليوم» */
-.cal-cell.today-highlight.selected {
-  background: linear-gradient(135deg, var(--olive-2), var(--olive-4));
-  border: 2px solid #d97706 !important;
+.cal-cell.selected:not(.is-today) .cal-day-num { color: #fff; }
+.cal-cell.selected:not(.is-today) .cal-today-lbl { display: none; }
+/* اليوم + محدد: نفس تمييز اليوم + إطار المحدد */
+.cal-cell.is-today.selected {
+  background-color: #fef3c7 !important;
+  background-image: none !important;
+  border: 3px solid var(--olive-2) !important;
+  color: var(--olive-1) !important;
   box-shadow:
-    0 4px 14px rgba(64, 81, 59, 0.32),
-    0 0 0 1px rgba(254, 243, 199, 0.45);
+    inset 0 0 0 2px #d97706,
+    0 4px 16px rgba(64, 81, 59, 0.12) !important;
 }
-.cal-cell.today-highlight.selected .cal-day-num { color: #fff; }
-.cal-cell.today-highlight.selected .cal-today-lbl { color: rgba(255, 248, 220, 0.95); }
+.cal-cell.is-today.selected .cal-day-num,
+.cal-cell.is-today.selected .cal-today-lbl {
+  color: var(--olive-1) !important;
+}
 .cal-cell .cal-today-lbl {
   font-size: 0.55rem;
   font-weight: 800;
@@ -1046,15 +1104,38 @@ select.input-shell {
   opacity: 0.75;
 }
 
-/* Wide date picker */
+/* Wide date picker — كبسولة وبوردر مثل حقل السرية المستلمة */
 .form-group-date { margin-top: 4px; }
 .date-picker-wide {
-  min-height: 64px;
-  padding: 14px 18px;
-  border-radius: var(--r-lg);
+  min-height: 44px;
+  padding: 8px 18px 8px 16px;
+  border-radius: 999px;
+  border-width: 1.5px;
+  border-style: solid;
+  border-color: var(--border);
+  background: var(--white);
 }
-.date-picker-wide .dp-main { font-size: 1.02rem; }
-.date-picker-wide .dp-sub { font-size: 0.76rem; }
+.date-picker-btn.date-picker-wide:hover {
+  border-color: var(--border);
+  box-shadow: none;
+}
+.date-picker-btn.date-picker-wide:hover .dp-arrow { color: var(--text-l); }
+.date-picker-btn.date-picker-wide:focus,
+.date-picker-btn.date-picker-wide:focus-visible {
+  border-color: var(--border);
+  box-shadow: 0 0 0 3px rgba(213, 205, 184, 0.45);
+  outline: none;
+}
+.date-picker-btn.date-picker-wide.has-value {
+  border-color: var(--border);
+  box-shadow: 0 2px 10px rgba(64, 81, 59, 0.06);
+}
+.date-picker-btn.date-picker-wide.has-value:hover {
+  border-color: var(--border);
+  box-shadow: 0 2px 12px rgba(64, 81, 59, 0.08);
+}
+.date-picker-wide .dp-main { font-size: 0.92rem; }
+.date-picker-wide .dp-sub { font-size: 0.72rem; }
 
 .form-actions-row {
   display: flex; flex-direction: column; gap: 10px; margin-top: 8px;
@@ -1079,8 +1160,13 @@ body.has-saved-state #btn-edit-settings { display: flex !important; align-items:
   border-radius: var(--r-xl);
   padding: 18px 16px 16px;
   margin-bottom: 14px;
+  max-width: 100%;
+  box-sizing: border-box;
   box-shadow: var(--shadow-card);
   border: 1px solid rgba(213,205,184,.45);
+}
+.rc-card.result-card {
+  border-radius: 16px;
 }
 .rc-eyebrow {
   font-size: 0.68rem; font-weight: 700; color: var(--text-l);
@@ -1276,41 +1362,37 @@ body.has-saved-state #btn-edit-settings { display: flex !important; align-items:
   text-shadow: 0 1px 2px rgba(0,0,0,.18);
 }
 
-/* بطاقات السرايا القادمة — زيتي متوسط (أفتح من البطاقة الرئيسية)، نص فاتح + مربعات داخلية شفافة بنص زيتي */
+/* بطاقات السرايا القادمة — بيج فاتح؛ اسم السرية = نفس الزيتي الداكن للبطاقة الحالية؛ مربع التواريخ أبيض بتدرج بيج خفيف */
 .rc-card.rc-card-upcoming {
-  background: linear-gradient(168deg, #3d4428 0%, #4b5320 38%, #4f5828 72%, #545f32 100%);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  box-shadow:
-    0 12px 36px rgba(20, 24, 10, 0.28),
-    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  background: #fdfbf7;
+  border: 1px solid rgba(213, 205, 184, 0.55);
+  box-shadow: var(--shadow-sm);
 }
 .rc-card.rc-card-upcoming .rc-eyebrow {
-  color: rgba(255, 255, 255, 0.9);
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  color: var(--olive-2);
+  text-shadow: none;
 }
 .rc-card.rc-card-upcoming .rc-name-box {
   margin-bottom: 12px;
-  background: rgba(255, 255, 255, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.38);
-  color: var(--olive-1);
-  box-shadow:
-    0 4px 18px rgba(0, 0, 0, 0.12),
-    inset 0 1px 0 rgba(255, 255, 255, 0.55);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.35);
+  background: linear-gradient(160deg, #354430 0%, #40513b 45%, #4e6147 100%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(41, 61, 37, 0.2);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 .rc-card.rc-card-upcoming .rc-up-glass {
-  background: rgba(255, 255, 255, 0.82);
-  border: 1px solid rgba(255, 255, 255, 0.5);
+  background: linear-gradient(180deg, #ffffff 0%, #fdfbf7 55%, #f8f5ef 100%);
+  border: 1px solid rgba(213, 205, 184, 0.45);
   border-radius: 14px;
   padding: 14px 16px;
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   box-shadow:
-    0 6px 24px rgba(0, 0, 0, 0.14),
-    0 1px 0 rgba(255, 255, 255, 0.75) inset,
-    inset 0 -1px 0 rgba(41, 61, 37, 0.06);
+    0 6px 22px rgba(64, 81, 59, 0.08),
+    0 1px 0 rgba(255, 255, 255, 0.95) inset,
+    inset 0 -1px 0 rgba(213, 205, 184, 0.25);
   margin-bottom: 12px;
 }
 .rc-card.rc-card-upcoming .rc-up-glass .gl-label {
@@ -1353,8 +1435,8 @@ body.has-saved-state #btn-edit-settings { display: flex !important; align-items:
   font-weight: 600;
 }
 .rc-card-upcoming .rc-remain-one {
-  color: rgba(255, 252, 245, 0.96);
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+  color: var(--olive-1);
+  text-shadow: none;
   margin: 4px 0 12px;
   font-size: 0.92rem;
   font-weight: 800;
@@ -1362,21 +1444,21 @@ body.has-saved-state #btn-edit-settings { display: flex !important; align-items:
 .rc-card-upcoming .more-receipts-toggle,
 .rc-card-upcoming .more-receipts-toggle.past-toggle {
   margin-top: 6px;
-  background: rgba(255, 255, 255, 0.12);
-  border: 1px solid rgba(255, 255, 255, 0.32);
-  color: rgba(255, 255, 255, 0.94);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  background: var(--white);
+  border: 1.5px solid var(--border);
+  color: var(--olive-2);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  box-shadow: 0 1px 3px rgba(64, 81, 59, 0.04);
 }
 .rc-card-upcoming .more-receipts-toggle:first-of-type {
   margin-top: 0;
 }
 .rc-card-upcoming .more-receipts-toggle:hover,
 .rc-card-upcoming .more-receipts-toggle.past-toggle:hover {
-  background: rgba(255, 255, 255, 0.22);
-  color: #fff;
-  border-color: rgba(255, 255, 255, 0.45);
+  background: var(--bg);
+  color: var(--olive-1);
+  border-color: var(--border);
 }
 /* صفوف الاستلامات القادمة داخل اللوحة — زجاج فاتح، تواريخ في المنتصف */
 .rc-card-upcoming .more-receipts-inner {
@@ -1388,14 +1470,14 @@ body.has-saved-state #btn-edit-settings { display: flex !important; align-items:
   justify-content: center;
   padding: 14px 16px;
   text-align: center;
-  background: rgba(255, 255, 255, 0.78);
-  border: 1px solid rgba(255, 255, 255, 0.55);
+  background: linear-gradient(180deg, #ffffff 0%, #fdfbf7 100%);
+  border: 1px solid rgba(213, 205, 184, 0.45);
   border-radius: 14px;
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   box-shadow:
-    0 6px 22px rgba(0, 0, 0, 0.12),
-    inset 0 1px 0 rgba(255, 255, 255, 0.85);
+    0 4px 16px rgba(64, 81, 59, 0.07),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
 }
 .rc-card-upcoming .next-recv-panel-glass .next-recv-info {
   flex: none;
@@ -1422,9 +1504,9 @@ body.has-saved-state #btn-edit-settings { display: flex !important; align-items:
   margin-top: 4px;
 }
 .rc-card-upcoming .next-recv-panel-glass.past-glass {
-  background: rgba(255, 255, 255, 0.52);
+  background: linear-gradient(180deg, #faf8f4 0%, #f3efe8 100%);
   border-style: dashed;
-  border-color: rgba(255, 255, 255, 0.35);
+  border-color: rgba(213, 205, 184, 0.55);
 }
 .rc-card-upcoming .next-recv-panel-glass.past-glass .lbl {
   color: var(--text-l);
@@ -1440,7 +1522,7 @@ body.has-saved-state #btn-edit-settings { display: flex !important; align-items:
 @media (max-width: 380px) {
   .app-header h1 { font-size: 1.15rem; line-height: 1.35; }
   .container { padding: 0 10px; }
-  .card, .form-card { padding: 18px 14px; }
+  .main-white-board { padding: 18px 14px; border-radius: 20px; }
   .glass-row { grid-template-columns: 1fr; }
   .rc-meta-row { flex-direction: column; align-items: stretch; }
   .rc-remain { align-self: center; }
@@ -1470,7 +1552,8 @@ body.has-saved-state #btn-edit-settings { display: flex !important; align-items:
 
 <div class="container">
 
-  <div class="card form-card" id="form-card">
+  <div class="main-white-board">
+  <div class="form-card" id="form-card">
     <div class="form-card-head">
       <h2 class="form-card-title">المدخلات</h2>
       <p class="form-card-sub">بيانات السرية المستلمة الآن وعدد مجموع السرايا</p>
@@ -1541,16 +1624,17 @@ body.has-saved-state #btn-edit-settings { display: flex !important; align-items:
     </div>
   </div>
 
-  <!-- RESULTS -->
-  <div class="results-section" id="results">
+  <div class="results-section" id="resultsArea">
     <div class="section-title">السرية المستلمة حالياً</div>
     <div id="current-output"></div>
     <div class="section-title" id="upcoming-title" style="display:none;">السرايا القادمة</div>
     <div id="upcoming-output"></div>
   </div>
 
+  </div>
+
   <p class="disclaimer">
-    ⚠️ الحساب اعتماداً على تاريخ الجهاز — تحقق من النتيجة قبل الاعتماد عليها.
+    ⚠️ الحساب يعتمد على تقويم أم القرى — تحقق من النتيجة قبل الاعتماد عليها.
   </p>
 
 </div>
@@ -1571,12 +1655,14 @@ body.has-saved-state #btn-edit-settings { display: flex !important; align-items:
       </button>
     </div>
 
+    <div class="cal-dates-wrap">
     <div class="cal-weekdays">
       <span>الأحد</span><span>الإثنين</span><span>الثلاثاء</span>
       <span>الأربعاء</span><span>الخميس</span><span>الجمعة</span><span>السبت</span>
     </div>
 
     <div class="cal-grid" id="cal-grid"></div>
+    </div>
 
     <div class="cal-footer">
       <button class="cal-btn cal-btn-today" onclick="confirmCalendar()">موافق</button>
@@ -1672,8 +1758,8 @@ function confirmCalendar() {
 }
 
 function renderCalendar() {
-  const y = calState.viewY;
-  const m = calState.viewM;
+  const y = Number(calState.viewY);
+  const m = Number(calState.viewM);
   const first = new Date(y, m - 1, 1);
   const firstDow = first.getDay();
   const dim = daysInGregorianMonth(y, m);
@@ -1684,10 +1770,10 @@ function renderCalendar() {
   const grid = document.getElementById('cal-grid');
   grid.innerHTML = '';
 
-  const today = new Date();
-  const todayY = today.getFullYear();
-  const todayM = today.getMonth() + 1;
-  const todayD = today.getDate();
+  const todayObj = new Date();
+  const todayY = todayObj.getFullYear();
+  const todayM = todayObj.getMonth();
+  const todayD = todayObj.getDate();
 
   for (let i = 0; i < firstDow; i++) {
     const empty = document.createElement('div');
@@ -1698,8 +1784,13 @@ function renderCalendar() {
   for (let d = 1; d <= dim; d++) {
     const cell = document.createElement('div');
     cell.className = 'cal-cell';
-    if (y === todayY && m === todayM && d === todayD) {
-      cell.classList.add('today-highlight');
+    var cellDate = new Date(y, m - 1, d);
+    var isTodayCell =
+      cellDate.getDate() === todayD &&
+      cellDate.getMonth() === todayM &&
+      cellDate.getFullYear() === todayY;
+    if (isTodayCell) {
+      cell.classList.add('is-today');
     }
     if (calState.selected &&
         calState.selected.y === y &&
@@ -1707,7 +1798,7 @@ function renderCalendar() {
         calState.selected.d === d) cell.classList.add('selected');
 
     var innerCell = '<span class="cal-day-num">' + d + '</span>';
-    if (y === todayY && m === todayM && d === todayD) {
+    if (isTodayCell) {
       innerCell += '<span class="cal-today-lbl">اليوم</span>';
     }
     cell.innerHTML = innerCell;
@@ -2042,9 +2133,9 @@ function calculate() {
   savePersistedState();
 
   /* Show results */
-  document.getElementById('results').classList.add('show');
+  document.getElementById('resultsArea').classList.add('show');
   setTimeout(() => {
-    document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    document.getElementById('resultsArea').scrollIntoView({ behavior: 'smooth', block: 'start' });
   }, 100);
 }
 
@@ -2054,7 +2145,7 @@ function renderCurrent(data) {
   const pct = Math.max(0, Math.min(100, (passed / total) * 100));
 
   const html = `
-    <div class="rc-card rc-current">
+    <div class="rc-card rc-current result-card">
       <div class="squad-pulse-wrap">
         <div class="squad-pulse-ring" aria-hidden="true"><span class="squad-pulse-num">${data.squadNum}</span></div>
         <div class="rc-current-head">
@@ -2159,7 +2250,7 @@ function renderUpcoming(squads) {
     }).join('');
 
     return `
-      <div class="rc-card rc-card-upcoming">
+      <div class="rc-card rc-card-upcoming result-card">
         <div class="rc-eyebrow">موعد الاستلام القادم</div>
         <div class="rc-name-box">السرية ${ordinalSquad(s.squadNum)}</div>
         <div class="rc-up-glass">
