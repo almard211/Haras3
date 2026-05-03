@@ -1811,14 +1811,39 @@ function confirmCalendar() {
 }
 
 function formatHijriMonthYearForView(y, m) {
-  var viewDate = new Date(y, m - 1, 1);
   try {
-    return new Intl.DateTimeFormat('ar-SA-u-ca-islamic', {
-      year: 'numeric',
-      month: 'long'
-    }).format(viewDate);
+    var fmt = new Intl.DateTimeFormat('ar-SA-u-ca-islamic', { month: 'long', year: 'numeric' });
+    var fmtM = new Intl.DateTimeFormat('ar-SA-u-ca-islamic', { month: 'long' });
+    var fmtY = new Intl.DateTimeFormat('ar-SA-u-ca-islamic', { year: 'numeric' });
+
+    var dim = daysInGregorianMonth(y, m);
+    var firstDate = new Date(y, m - 1, 1);
+    var lastDate  = new Date(y, m - 1, dim);
+
+    var partsFirst = fmt.formatToParts(firstDate);
+    var partsLast  = fmt.formatToParts(lastDate);
+
+    var monthFirst = '', yearFirst = '', monthLast = '', yearLast = '';
+    partsFirst.forEach(function(p) {
+      if (p.type === 'month') monthFirst = p.value;
+      if (p.type === 'year')  yearFirst  = p.value;
+    });
+    partsLast.forEach(function(p) {
+      if (p.type === 'month') monthLast = p.value;
+      if (p.type === 'year')  yearLast  = p.value;
+    });
+
+    if (monthFirst === monthLast && yearFirst === yearLast) {
+      return monthFirst + ' ' + yearFirst;
+    }
+    if (yearFirst === yearLast) {
+      return monthFirst + ' - ' + monthLast + ' ' + yearFirst;
+    }
+    return monthFirst + ' ' + yearFirst + ' - ' + monthLast + ' ' + yearLast;
   } catch (e) {
-    return '';
+    try {
+      return new Intl.DateTimeFormat('ar-SA-u-ca-islamic', { year: 'numeric', month: 'long' }).format(new Date(y, m - 1, 1));
+    } catch (e2) { return ''; }
   }
 }
 
