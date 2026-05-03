@@ -114,6 +114,31 @@ body {
   backdrop-filter: blur(8px);
 }
 .app-header .badge svg { width: 14px; height: 14px; }
+.home-btn {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  z-index: 10;
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background: rgba(255,255,255,.10);
+  border: 1px solid rgba(255,255,255,.16);
+  text-decoration: none;
+  transition: background .16s, transform .14s;
+  -webkit-tap-highlight-color: transparent;
+}
+.home-btn svg {
+  width: 22px;
+  height: 22px;
+  fill: rgba(255,255,255,.82);
+  display: block;
+}
+.home-btn:hover  { background: rgba(255,255,255,.20); transform: scale(1.08); }
+.home-btn:active { transform: scale(.93); }
 
 /* === CONTAINER === */
 .container {
@@ -1565,6 +1590,11 @@ body.has-saved-state #btn-edit-settings { display: flex !important; align-items:
 <body>
 
 <header class="app-header">
+  <a class="home-btn" href="index.html" aria-label="الصفحة الرئيسية">
+    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+      <path d="M3 11.5L12 3l9 8.5V21a1 1 0 0 1-1 1h-5v-5h-6v5H4a1 1 0 0 1-1-1V11.5z"/>
+    </svg>
+  </a>
   <h1>مواعيد استلام السرايا</h1>
   <p>حاسبة مواعيد الاستلام والتسليم للسرايا - تذكّر تلقائي -</p>
   <span class="badge">
