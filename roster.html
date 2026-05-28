@@ -1856,13 +1856,13 @@ function onTotalMembersChange(){
   updateNamesCardSub(n);
   if(n>0){
     currentCount=n;
-    /* only restore saved names if count matches exactly */
-    var savedNames=null;
+    var savedNames=getNamesByOrder();
     try{
       var s=JSON.parse(localStorage.getItem(LS_KEY)||'null');
-      if(s&&s.names&&s.count===n) savedNames=s.names;
+      if((!savedNames||savedNames.length===0)&&s&&s.names) savedNames=s.names;
     }catch(e){}
     buildNamesEditor(n,savedNames);
+    saveNamesToLS();
   } else {
     renderDisabledEditor();
   }
