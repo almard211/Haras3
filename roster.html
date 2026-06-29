@@ -2851,9 +2851,12 @@ function _buildRosterMembersHtml() {
     '</div>' : '';
 
   return '<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8">' +
+    '<base href="' + base + '">' +
     '<style>' +
-    '@font-face{font-family:"Tajawal";src:url("' + base + 'fonts/Tajawal-Regular.woff2") format("woff2");font-weight:400;font-display:block;}' +
-    '@font-face{font-family:"Tajawal";src:url("' + base + 'fonts/Tajawal-Bold.woff2") format("woff2");font-weight:700;font-display:block;}' +
+    '@font-face{font-family:"Tajawal";src:url("' + base + 'fonts/Tajawal-Regular.woff2") format("woff2"),url("' + base + 'fonts/Tajawal-Regular.ttf") format("truetype");font-weight:400;font-display:swap;}' +
+    '@font-face{font-family:"Tajawal";src:url("' + base + 'fonts/Tajawal-Medium.woff2") format("woff2"),url("' + base + 'fonts/Tajawal-Medium.ttf") format("truetype");font-weight:500;font-display:swap;}' +
+    '@font-face{font-family:"Tajawal";src:url("' + base + 'fonts/Tajawal-Bold.woff2") format("woff2"),url("' + base + 'fonts/Tajawal-Bold.ttf") format("truetype");font-weight:700;font-display:swap;}' +
+    '@font-face{font-family:"Tajawal";src:url("' + base + 'fonts/Tajawal-ExtraBold.woff2") format("woff2"),url("' + base + 'fonts/Tajawal-ExtraBold.ttf") format("truetype");font-weight:800;font-display:swap;}' +
     'body{font-family:"Tajawal",Tahoma,Arial,sans-serif;direction:rtl;margin:0;padding:16px;background:#fff;color:#000;}' +
     'h2{text-align:center;font-size:18pt;font-weight:700;margin:0 0 4px;}' +
     'p.sub{text-align:center;font-size:10pt;color:#444;margin-bottom:10px;}' +
@@ -2888,9 +2891,6 @@ function printRosterMembers() {
   iframe.style.cssText = 'position:fixed;top:-9999px;left:-9999px;width:794px;height:1123px;border:none;visibility:hidden;';
   document.body.appendChild(iframe);
 
-  var iDoc = iframe.contentDocument || iframe.contentWindow.document;
-  iDoc.open(); iDoc.write(html); iDoc.close();
-
   function doPrint() {
     var iWin = iframe.contentWindow;
     function exec() {
@@ -2898,12 +2898,23 @@ function printRosterMembers() {
       catch(e) { window.print(); }
       setTimeout(function() { if (iframe.parentNode) iframe.parentNode.removeChild(iframe); }, 60000);
     }
-    setTimeout(exec, 500);
+    if (iWin.document.fonts && iWin.document.fonts.ready) {
+      iWin.document.fonts.ready.then(function() { setTimeout(exec, 300); }).catch(function() { setTimeout(exec, 300); });
+    } else {
+      setTimeout(exec, 600);
+    }
   }
 
-  if (iframe.contentDocument && iframe.contentDocument.readyState === 'complete') {
-    doPrint();
-  } else {
+  try {
+    var blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+    var blobUrl = URL.createObjectURL(blob);
+    iframe.onload = function() { doPrint(); URL.revokeObjectURL(blobUrl); };
+    iframe.src = blobUrl;
+    setTimeout(doPrint, 3000); /* backup */
+  } catch(e) {
+    /* fallback لـ iDoc.write إذا فشل Blob */
+    var iDoc = iframe.contentDocument || iframe.contentWindow.document;
+    iDoc.open(); iDoc.write(html); iDoc.close();
     iframe.onload = doPrint;
     setTimeout(doPrint, 2000);
   }
