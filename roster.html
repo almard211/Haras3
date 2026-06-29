@@ -2879,16 +2879,34 @@ function _buildRosterMembersHtml() {
 function printRosterMembers() {
   if (!window._generatedRows) { alert('يرجى توليد الكشف أولاً'); return; }
   var html = _buildRosterMembersHtml();
+
+  var oldFrame = document.getElementById('__print_members_iframe__');
+  if (oldFrame) oldFrame.parentNode.removeChild(oldFrame);
+
   var iframe = document.createElement('iframe');
-  iframe.style.cssText = 'position:fixed;top:-9999px;left:-9999px;width:794px;height:1123px;border:none;';
+  iframe.id = '__print_members_iframe__';
+  iframe.style.cssText = 'position:fixed;top:-9999px;left:-9999px;width:794px;height:1123px;border:none;visibility:hidden;';
   document.body.appendChild(iframe);
-  var doc = iframe.contentDocument || iframe.contentWindow.document;
-  doc.open(); doc.write(html); doc.close();
-  setTimeout(function() {
-    iframe.contentWindow.focus();
-    iframe.contentWindow.print();
-    setTimeout(function() { document.body.removeChild(iframe); }, 1000);
-  }, 600);
+
+  var iDoc = iframe.contentDocument || iframe.contentWindow.document;
+  iDoc.open(); iDoc.write(html); iDoc.close();
+
+  function doPrint() {
+    var iWin = iframe.contentWindow;
+    function exec() {
+      try { iWin.focus(); iWin.print(); }
+      catch(e) { window.print(); }
+      setTimeout(function() { if (iframe.parentNode) iframe.parentNode.removeChild(iframe); }, 60000);
+    }
+    setTimeout(exec, 500);
+  }
+
+  if (iframe.contentDocument && iframe.contentDocument.readyState === 'complete') {
+    doPrint();
+  } else {
+    iframe.onload = doPrint;
+    setTimeout(doPrint, 2000);
+  }
 }
 
 function downloadRosterMembers() {
