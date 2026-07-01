@@ -1492,44 +1492,15 @@ body.has-saved-state #btn-edit-settings { display: flex !important; align-items:
     inset 0 -1px 0 rgba(213, 205, 184, 0.25);
   margin-bottom: 12px;
 }
-.rc-card.rc-card-upcoming .rc-up-glass .gl-label {
-  font-size: 0.64rem;
-  font-weight: 700;
-  color: var(--olive-3);
-  margin-bottom: 4px;
-}
-.rc-card.rc-card-upcoming .rc-up-glass .gl-main {
-  font-size: 0.9rem;
-  font-weight: 800;
-  color: var(--olive-1);
-  line-height: 1.35;
-}
-.rc-card.rc-card-upcoming .rc-up-glass .gl-sub {
-  font-size: 0.74rem;
-  color: var(--olive-2);
-  margin-top: 4px;
-  font-weight: 600;
-}
-.rc-card.rc-card-upcoming .rc-up-glass .gl-hijri {
-  font-size: 0.7rem;
-  color: var(--olive-3);
-  margin-top: 3px;
-  font-weight: 600;
-}
-.rc-card.rc-card-upcoming .rc-up-glass .gl-end {
-  font-size: 0.73rem;
-  color: var(--olive-2);
-  margin-top: 10px;
-  padding-top: 10px;
-  border-top: 1px dashed rgba(64, 81, 59, 0.22);
-  font-weight: 600;
-  line-height: 1.5;
-}
+.rc-card.rc-card-upcoming .rc-up-glass .gl-label,
+.rc-card.rc-card-upcoming .rc-up-glass .gl-main,
+.rc-card.rc-card-upcoming .rc-up-glass .gl-sub,
+.rc-card.rc-card-upcoming .rc-up-glass .gl-hijri,
+.rc-card.rc-card-upcoming .rc-up-glass .gl-end,
 .rc-card.rc-card-upcoming .rc-up-glass .gl-end-hijri {
-  font-size: 0.66rem;
-  color: var(--olive-3);
-  margin-top: 4px;
-  font-weight: 600;
+  margin: 0;
+  padding: 0;
+  border: none;
 }
 .rc-card-upcoming .rc-remain-one {
   color: var(--olive-1);
@@ -1614,6 +1585,66 @@ body.has-saved-state #btn-edit-settings { display: flex !important; align-items:
 .rc-card-upcoming .next-recv-panel-glass.past-glass .greg {
   color: var(--olive-3);
 }
+
+
+/* Unified Hijri | Gregorian line */
+.date-line {
+  display: inline-flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 12px;
+  white-space: nowrap;
+  direction: rtl;
+}
+.date-line .date-sep {
+  color: var(--gold-2);
+  font-weight: 800;
+  padding: 0 4px;
+}
+.date-line .date-hijri,
+.date-line .date-greg { display: inline-block; }
+
+/* Unified receipt start/end blocks */
+.receipt-date-block {
+  text-align: center;
+  padding: 0 0 12px;
+}
+.receipt-date-block + .receipt-date-block {
+  border-top: 1px dashed rgba(64, 81, 59, 0.22);
+  padding-top: 12px;
+  margin-top: 12px;
+}
+.receipt-label {
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: var(--olive-1);
+  margin-bottom: 4px;
+}
+.receipt-weekday {
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--olive-1);
+  line-height: 1.35;
+  margin-bottom: 4px;
+}
+.receipt-date-line {
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: var(--olive-2);
+  line-height: 1.55;
+}
+.rc-current .receipt-label,
+.rc-current .receipt-weekday { color: #fff; }
+.rc-current .receipt-date-line { color: rgba(255,255,255,.86); }
+.rc-current .receipt-date-block + .receipt-date-block {
+  border-top-color: rgba(255,255,255,.20);
+}
+.rc-card-upcoming .next-recv-panel-glass .receipt-label,
+.rc-card-upcoming .next-recv-panel-glass .receipt-weekday { color: var(--olive-1); }
+.rc-card-upcoming .next-recv-panel-glass .receipt-date-line { color: var(--olive-2); }
+.rc-card-upcoming .next-recv-panel-glass.past-glass .receipt-label,
+.rc-card-upcoming .next-recv-panel-glass.past-glass .receipt-weekday { color: var(--olive-2); }
+.rc-card-upcoming .next-recv-panel-glass.past-glass .receipt-date-line { color: var(--olive-3); }
 
 /* Responsive */
 @media (max-width: 380px) {
@@ -2044,8 +2075,20 @@ function fmtGreg(g) {
   return g.d + ' ' + GREG_MONTHS[g.m - 1] + ' ' + g.y + 'م';
 }
 function fmtDateLine(h, g) {
-  return fmtHijri(h) + ' | ' + fmtGreg(g);
+  return '<span class="date-line"><span class="date-hijri">' + fmtHijri(h) + '</span><span class="date-sep">|</span><span class="date-greg">' + fmtGreg(g) + '</span></span>';
 }
+function receiptDateBlockHtml(label, weekday, h, g, extraClass) {
+  return '<div class="receipt-date-block ' + (extraClass || '') + '">' +
+    '<div class="receipt-label">' + label + '</div>' +
+    '<div class="receipt-weekday">' + weekday + '</div>' +
+    '<div class="receipt-date-line">' + fmtDateLine(h, g) + '</div>' +
+  '</div>';
+}
+function receiptStartEndHtml(startLabel, startWeekday, startH, startG, endWeekday, endH, endG) {
+  return receiptDateBlockHtml(startLabel, startWeekday, startH, startG, 'receipt-start') +
+         receiptDateBlockHtml('نهاية الاستلام', endWeekday, endH, endG, 'receipt-end');
+}
+
 
 /* ============================================
    PERSISTENCE + SEED SYNC
@@ -2378,12 +2421,7 @@ function renderCurrent(data) {
             const labels = ['الأول','الثاني','الثالث'];
             return `<div class="next-recv modern next-recv-panel-glass">
               <div class="next-recv-info next-recv-panel-info">
-                <div class="lbl">الاستلام ${labels[i] || (i+1)}</div>
-                <div class="date">${r.weekday}</div>
-                <div class="greg">${fmtDateLine(r.hijri, r.greg)}</div>
-                <div class="greg">نهاية الاستلام</div>
-                <div class="greg">${rEndWd}</div>
-                <div class="greg" style="font-size:0.66rem;margin-top:2px;">${fmtDateLine(rEndH, rEnd)}</div>
+                ${receiptStartEndHtml('الاستلام ' + (labels[i] || (i+1)), r.weekday, r.hijri, r.greg, rEndWd, rEndH, rEnd)}
               </div>
             </div>`;
           }).join('')}
@@ -2403,12 +2441,7 @@ function renderCurrent(data) {
             const rEndH = jdnToHijri(r.jdn + dur);
             return `<div class="next-recv modern next-recv-panel-glass past-glass">
               <div class="next-recv-info next-recv-panel-info">
-                <div class="lbl">استلام سابق</div>
-                <div class="date">${r.weekday}</div>
-                <div class="greg">${fmtDateLine(r.hijri, r.greg)}</div>
-                <div class="greg">نهاية الاستلام</div>
-                <div class="greg">${rEndWd}</div>
-                <div class="greg" style="font-size:0.66rem;margin-top:2px;">${fmtDateLine(rEndH, rEnd)}</div>
+                ${receiptStartEndHtml('استلام سابق', r.weekday, r.hijri, r.greg, rEndWd, rEndH, rEnd)}
               </div>
             </div>`;
           }).join('')}
@@ -2451,12 +2484,7 @@ function renderUpcoming(squads) {
       return `
       <div class="next-recv modern next-recv-panel-glass">
         <div class="next-recv-info next-recv-panel-info">
-          <div class="lbl">الاستلام ${i === 0 ? 'الثاني' : 'الثالث'}</div>
-          <div class="date">${r.weekday}</div>
-          <div class="greg">${fmtDateLine(r.hijri, r.greg)}</div>
-          <div class="greg">نهاية الاستلام</div>
-          <div class="greg">${rEndWd}</div>
-          <div class="greg" style="font-size:0.66rem;margin-top:2px;">${fmtDateLine(rEndH, rEnd)}</div>
+          ${receiptStartEndHtml('الاستلام ' + (i === 0 ? 'الثاني' : 'الثالث'), r.weekday, r.hijri, r.greg, rEndWd, rEndH, rEnd)}
         </div>
       </div>`;
     }).join('');
@@ -2468,12 +2496,7 @@ function renderUpcoming(squads) {
       return `
       <div class="next-recv modern next-recv-panel-glass past-glass">
         <div class="next-recv-info next-recv-panel-info">
-          <div class="lbl">استلام سابق</div>
-          <div class="date">${r.weekday}</div>
-          <div class="greg">${fmtDateLine(r.hijri, r.greg)}</div>
-          <div class="greg">نهاية الاستلام</div>
-          <div class="greg">${rEndWd}</div>
-          <div class="greg" style="font-size:0.66rem;margin-top:2px;">${fmtDateLine(rEndH, rEnd)}</div>
+          ${receiptStartEndHtml('استلام سابق', r.weekday, r.hijri, r.greg, rEndWd, rEndH, rEnd)}
         </div>
       </div>`;
     }).join('');
@@ -2483,12 +2506,7 @@ function renderUpcoming(squads) {
         <div class="rc-eyebrow">موعد الاستلام القادم</div>
         <div class="rc-name-box">السرية ${ordinalSquad(s.squadNum)}</div>
         <div class="rc-up-glass">
-          <div class="gl-label">بداية الاستلام</div>
-          <div class="gl-main">${first.weekday}</div>
-          <div class="gl-hijri">${fmtDateLine(first.hijri, first.greg)}</div>
-          <div class="gl-end">نهاية الاستلام</div>
-          <div class="gl-end">${firstEndWd}</div>
-          <div class="gl-end-hijri">${fmtDateLine(firstEndHijri, firstEnd)}</div>
+          ${receiptStartEndHtml('بداية الاستلام', first.weekday, first.hijri, first.greg, firstEndWd, firstEndHijri, firstEnd)}
         </div>
         <p class="rc-remain-one">${remainOnReceipt(first.daysLeft)}</p>
 
